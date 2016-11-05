@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 
 [Serializable]
-public class HexCoord 
+public struct HexCoord 
 {
     public int x;
     public int y;

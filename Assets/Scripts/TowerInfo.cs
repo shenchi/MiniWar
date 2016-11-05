@@ -1,54 +1,36 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Networking;
 
-public class TowerInfo : MonoBehaviour
+public class TowerInfo : NetworkBehaviour
 {
-    public bool destroyWait;
-    public bool consumeWait;
-
     public int health;
     public int level;
-    public int energy;
+    public int vision;
     public int range;
+    public int price;
     public int cost;
-    public int team;
 
-    public int consumption;
+    [SyncVar(hook = "OnLabelColorChanged")]
+    public Color labelColor;
 
-    public PlayerInfo player;
+    [SyncVar(hook = "OnCoordChanged")]
+    public HexCoord coord;
 
-    public bool wait;
+    [SerializeField]
+    private Renderer label;
 
-    public bool manualDestroy = false;
-    // Use this for initialization
-    void Start()
+    public PlayerAgent player { get; set; }
+
+    private void OnLabelColorChanged(Color value)
     {
-
+        labelColor = value;
+        label.material.color = value;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnCoordChanged(HexCoord coord)
     {
-        if ((health <= 0 || manualDestroy) && !destroyWait)
-        {
-            destroy();
-            destroyWait = true;
-        }
-
-        if (!consumeWait)
-        {
-            player.resource -= consumption;
-            consumeWait = true;
-        }
-    }
-
-    public void destroy()
-    {
-
-    }
-
-    public void manuallyDestroy()
-    {
-
+        this.coord = coord;
+        transform.position = MapManager.Instance.GetMountPosition(coord);
     }
 }

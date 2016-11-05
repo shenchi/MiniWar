@@ -6,11 +6,15 @@ public class Hexagon : MonoBehaviour
 {
     public int height = 1;
     public HexCoord coord;
-
-    // Use this for initialization
-    void Start()
+    
+    void Awake()
     {
+    }
 
+    public void UpdateCoord()
+    {
+        coord = HexagonUtils.Pos2Coord(transform.position);
+        transform.position = HexagonUtils.Coord2Pos(coord);
     }
 
     // Update is called once per frame
@@ -19,8 +23,7 @@ public class Hexagon : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
-            coord = HexagonUtils.Pos2Coord(transform.position);
-            transform.position = HexagonUtils.Coord2Pos(coord);
+            UpdateCoord();
 
             height = Mathf.Clamp(height, 1, HexagonUtils.MaxHeight);
             transform.localScale = new Vector3(1, height, 1);
