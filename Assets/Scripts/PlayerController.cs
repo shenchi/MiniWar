@@ -5,9 +5,6 @@ using UnityEngine.Networking;
 public class PlayerController : NetworkBehaviour
 {
     #region Client
-
-    public static PlayerController Instance { get; private set; }
-
     public PlayerAgent CurrentPlayer { get; private set; }
 
     public enum State
@@ -29,16 +26,11 @@ public class PlayerController : NetworkBehaviour
     void Awake()
     {
         terrainMask = LayerMask.GetMask("Terrain");
-        if (Instance != null)
-            throw new System.Exception("PlayerController already exists");
-        Instance = this;
     }
 
     void OnDestroy()
     {
         EndControl();
-        if (Instance == this)
-            Instance = null;
     }
 
     public void StartControl(PlayerAgent player)

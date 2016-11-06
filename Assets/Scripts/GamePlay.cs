@@ -53,6 +53,8 @@ public class GamePlay : NetworkBehaviour
     private PlayerAgent currentPlayer = null;
     private float timeElapsed = 0.0f;
 
+    private bool finishCurrentPhase = false;
+
     public void InitPlayerList()
     {
         playerList = new List<int>();
@@ -131,6 +133,7 @@ public class GamePlay : NetworkBehaviour
         currentPlayer = playerTable[playerList[player]];
         currentPhase.CurrentPlayer = currentPlayer;
         timeElapsed = 0.0f;
+        finishCurrentPhase = false;
 
         currentPhase.OnEnter();
     }
@@ -141,7 +144,7 @@ public class GamePlay : NetworkBehaviour
             return;
 
         timeElapsed += Time.deltaTime;
-        if (timeElapsed > currentPhase.timeLimit)
+        if (finishCurrentPhase || timeElapsed > currentPhase.timeLimit)
         {
             currentPhase.OnExit();
             NextPhase();
@@ -150,6 +153,11 @@ public class GamePlay : NetworkBehaviour
         {
             currentPhase.OnTick();
         }
+    }
+
+    public void FinishCurrentPhase()
+    {
+        finishCurrentPhase = true;
     }
 
     #endregion

@@ -59,6 +59,12 @@ public class PlayerAgent : NetworkBehaviour
             );
     }
 
+    [Command]
+    void CmdFinishCurrentPhase()
+    {
+        GamePlay.Instance.FinishCurrentPhase();
+    }
+
     public void AddResource(int res)
     {
         var temp = playerInfo;
@@ -69,6 +75,8 @@ public class PlayerAgent : NetworkBehaviour
     #endregion
 
     #region Client
+
+    private PlayerController playerController = null;
 
     public override void OnStartLocalPlayer()
     {
@@ -97,7 +105,7 @@ public class PlayerAgent : NetworkBehaviour
                 }
             }
 
-
+            playerController = gameObject.GetComponent<PlayerController>();
         }
     }
 
@@ -126,11 +134,14 @@ public class PlayerAgent : NetworkBehaviour
         if (!isLocalPlayer)
             return;
 
-        PlayerController.Instance.StartControl(this);
-        UIController.Instance.ClearBuildingButtonActions();
-        UIController.Instance.RegisterBuildingButton("Resource", delegate () { PlayerController.Instance.StartBuilding(0); });
-        UIController.Instance.RegisterBuildingButton("Vision", delegate () { PlayerController.Instance.StartBuilding(1); });
-        UIController.Instance.RegisterBuildingButton("Attack", delegate () { PlayerController.Instance.StartBuilding(2); });
+        playerController.StartControl(this);
+        UIController.Instance.ClearButtonActions();
+
+        UIController.Instance.RegisterButtonAction("Resource", delegate () { playerController.StartBuilding(0); });
+        UIController.Instance.RegisterButtonAction("Vision", delegate () { playerController.StartBuilding(1); });
+        UIController.Instance.RegisterButtonAction("Attack", delegate () { playerController.StartBuilding(2); });
+        UIController.Instance.RegisterButtonAction("CancelBuilding", delegate () { CmdFinishCurrentPhase(); });
+
         UIController.Instance.EnableBuildingPanel = true;
         UIController.Instance.RemainingTime = 1.0f;
     }
@@ -150,8 +161,8 @@ public class PlayerAgent : NetworkBehaviour
         if (!isLocalPlayer)
             return;
 
-        UIController.Instance.ClearBuildingButtonActions();
-        PlayerController.Instance.EndControl();
+        UIController.Instance.ClearButtonActions();
+        playerController.EndControl();
         UIController.Instance.EnableBuildingPanel = false;
     }
 

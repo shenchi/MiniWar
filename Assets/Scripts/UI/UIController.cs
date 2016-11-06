@@ -12,7 +12,7 @@ public class UIController : MonoBehaviour
     public ProgressBar progressBar;
 
     private Canvas canvas;
-    private Dictionary<string, Action> buildingActions = new Dictionary<string, Action>();
+    private Dictionary<string, Action> buttonActions = new Dictionary<string, Action>();
 
     public bool EnableUI
     {
@@ -69,22 +69,22 @@ public class UIController : MonoBehaviour
         resText.text = res.ToString();
     }
 
-    public void RegisterBuildingButton(string type, Action action)
+    public void RegisterButtonAction(string type, Action action)
     {
-        if (!buildingActions.ContainsKey(type))
-            buildingActions.Add(type, action);
+        if (!buttonActions.ContainsKey(type))
+            buttonActions.Add(type, action);
         else
-            buildingActions[type] += action;
+            buttonActions[type] += action;
     }
 
-    public void ClearBuildingButtonActions()
+    public void ClearButtonActions()
     {
-        buildingActions = new Dictionary<string, Action>();
+        buttonActions = new Dictionary<string, Action>();
     }
 
-    public void OnBuildingButton(string type)
+    public void OnButtonClicked(string type)
     {
-        if (buildingActions.ContainsKey(type))
-            buildingActions[type]();
+        if (buttonActions.ContainsKey(type))
+            buttonActions[type]();
     }
 }
