@@ -52,6 +52,16 @@ public class TowerManager : NetworkBehaviour
     private Dictionary<int, List<TowerInfo>> playerTowers = new Dictionary<int, List<TowerInfo>>();
     private Dictionary<HexCoord, TowerInfo> mapTowers = new Dictionary<HexCoord, TowerInfo>();
 
+    public bool Occupied(HexCoord coord)
+    {
+        return mapTowers.ContainsKey(coord);
+    }
+
+    public IEnumerable<HexCoord> GetAllTowerCoords()
+    {
+        return mapTowers.Keys;
+    }
+
     public IEnumerable<TowerInfo> GetAllTowers()
     {
         return mapTowers.Values;
