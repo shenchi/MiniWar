@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using UnityEngine.Networking;
+using System.Collections.Generic;
 
 public class PlayerAgent : NetworkBehaviour
 {
@@ -27,6 +28,11 @@ public class PlayerAgent : NetworkBehaviour
     [SyncVar(hook = "OnPlayerInfoUpdate")]
     private PlayerInfo playerInfo;
 
+    private HashSet<HexCoord> campVision = new HashSet<HexCoord>();
+    private HexCoord campCoord = new HexCoord() { x = int.MaxValue, y = int.MaxValue };
+
+    public HashSet<HexCoord> CampVision { get { return campVision; } }
+
     public int Resource { get { return playerInfo.resource; } }
 
     #region Server
@@ -37,12 +43,6 @@ public class PlayerAgent : NetworkBehaviour
         this.slotId = slotId;
         playerColor = color;
 
-        playerInfo = new PlayerInfo()
-        {
-            team = slotId,
-            resource = 0,
-        };
-
         StartCoroutine(
             WaitForAndThen(
                 delegate ()
@@ -51,7 +51,12 @@ public class PlayerAgent : NetworkBehaviour
                 },
                 delegate ()
                 {
-                    playerInfo.camp = MapManager.Instance.GetStartPointCoord(slotId);
+                    playerInfo = new PlayerInfo()
+                    {
+                        team = slotId,
+                        resource = 0,
+                        camp = MapManager.Instance.GetStartPointCoord(slotId)
+                    };
                     TowerManager.Instance.BuildTower(this, playerInfo.camp);
                     GamePlay.Instance.RegisterPlayer(this);
                 }
@@ -77,6 +82,7 @@ public class PlayerAgent : NetworkBehaviour
     #region Client
 
     private PlayerController playerController = null;
+    private VisionController visionController = null;
 
     public override void OnStartLocalPlayer()
     {
@@ -92,6 +98,8 @@ public class PlayerAgent : NetworkBehaviour
             }
 
             UIController.Instance.EnableUI = true;
+            visionController = gameObject.AddComponent<VisionController>();
+            visionController.LocalPlayerSlotId = slotId;
 
             foreach (var slot in mgr.lobbySlots)
             {
@@ -122,9 +130,30 @@ public class PlayerAgent : NetworkBehaviour
     void OnPlayerInfoUpdate(PlayerInfo value)
     {
         playerInfo = value;
+
+        if (campCoord != playerInfo.camp)
+        {
+            campCoord = playerInfo.camp;
+            UpdateCampVision();
+        }
+
         if (isLocalPlayer)
         {
             UIController.Instance.SetResource(playerInfo.resource);
+        }
+    }
+
+    void UpdateCampVision()
+    {
+        campVision = new HashSet<HexCoord>();
+        campVision.Add(campCoord);
+        campVision.UnionWith(HexagonUtils.NeighborHexagons(campCoord, 1));
+        campVision.RemoveWhere(x => { return !MapManager.Instance.Exists(x); });
+
+        if (isLocalPlayer)
+        {
+            visionController.SetCampVision(campVision);
+            visionController.RecalcVision();
         }
     }
 

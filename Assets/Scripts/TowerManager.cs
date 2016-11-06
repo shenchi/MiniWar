@@ -52,6 +52,18 @@ public class TowerManager : NetworkBehaviour
     private Dictionary<int, List<TowerInfo>> playerTowers = new Dictionary<int, List<TowerInfo>>();
     private Dictionary<HexCoord, TowerInfo> mapTowers = new Dictionary<HexCoord, TowerInfo>();
 
+    public IEnumerable<TowerInfo> GetAllTowers()
+    {
+        return mapTowers.Values;
+    }
+
+    public List<TowerInfo> GetTowersOfPlayer(PlayerAgent player)
+    {
+        if (!playerTowers.ContainsKey(player.SlotId))
+            return new List<TowerInfo>();
+        return playerTowers[player.SlotId];
+    }
+
     public TowerInfo BuildTower(PlayerAgent player, HexCoord coord, int index = -1)
     {
         if (index < 0)
@@ -72,6 +84,13 @@ public class TowerManager : NetworkBehaviour
             return null;
         }
 
+        var vision = GetHexagonsInVision(player);
+        vision.UnionWith(player.CampVision);
+        if (!vision.Contains(coord))
+        {
+            return null;
+        }
+
         if (mapTowers.ContainsKey(coord))
         {
             return null;
@@ -79,21 +98,34 @@ public class TowerManager : NetworkBehaviour
 
         var tower = Instantiate(towerList[index]);
         NetworkServer.Spawn(tower.gameObject);
-
-        tower.player = player;
-        tower.labelColor = player.PlayerColor;
-
+        
         if (!playerTowers.ContainsKey(player.SlotId))
             playerTowers.Add(player.SlotId, new List<TowerInfo>());
 
         playerTowers[player.SlotId].Add(tower);
-        
-        tower.coord = coord;
+
         mapTowers.Add(coord, tower);
+        
+        tower.labelColor = player.PlayerColor;
+        tower.coord = coord;
+        tower.playerSlotId = player.SlotId;
 
         player.AddResource(-price);
 
         return tower;
+    }
+
+    public void DestroyTower(TowerInfo t)
+    {
+        if (!mapTowers.ContainsKey(t.coord) || mapTowers[t.coord] != t)
+            return;
+        if (!playerTowers.ContainsKey(t.playerSlotId))
+            return;
+
+        mapTowers.Remove(t.coord);
+        playerTowers[t.playerSlotId].Remove(t);
+
+        NetworkServer.Destroy(t.gameObject);
     }
 
     public List<TowerInfo> GetTowersOfType(PlayerAgent player, TowerType type)
@@ -138,9 +170,9 @@ public class TowerManager : NetworkBehaviour
     }
 
 
-    public HashSet<HexCoord> GetHexagonsInVision(PlayerAgent player, TowerType type)
+    public HashSet<HexCoord> GetHexagonsInVision(PlayerAgent player)
     {
-        return GetHexagonsInRange(player, type, x => { return x.vision; });
+        return GetHexagonsInRange(player, TowerType.VisionTower, x => { return x.vision; });
     }
 
 

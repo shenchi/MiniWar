@@ -6,7 +6,9 @@ public class TowerInfo : NetworkBehaviour
 {
     public TowerType type;
 
+    [SyncVar]
     public int health;
+
     public int level;
     public int vision;
     public int range;
@@ -22,7 +24,8 @@ public class TowerInfo : NetworkBehaviour
     [SerializeField]
     private Renderer label;
 
-    public PlayerAgent player { get; set; }
+    [SyncVar(hook = "OnSlotIdChanged")]
+    public int playerSlotId = -1;
 
     private void OnLabelColorChanged(Color value)
     {
@@ -34,5 +37,30 @@ public class TowerInfo : NetworkBehaviour
     {
         this.coord = coord;
         transform.position = MapManager.Instance.GetMountPosition(coord);
+    }
+
+    private void OnSlotIdChanged(int slotId)
+    {
+        if (playerSlotId != slotId)
+        {
+            if (playerSlotId == VisionController.Instance.LocalPlayerSlotId)
+            {
+                playerSlotId = slotId;
+                VisionController.Instance.RemoveTower(this);
+            }
+            if (slotId == VisionController.Instance.LocalPlayerSlotId)
+            {
+                playerSlotId = slotId;
+                VisionController.Instance.AddTower(this);
+            }
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (playerSlotId == VisionController.Instance.LocalPlayerSlotId)
+        {
+            VisionController.Instance.RemoveTower(this);
+        }
     }
 }

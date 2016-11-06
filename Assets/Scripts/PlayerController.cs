@@ -46,7 +46,7 @@ public class PlayerController : NetworkBehaviour
 
     public void StartBuilding(int towerIndex)
     {
-        if (!Idle)
+        if (!Idle && state != State.SelectBuildingCoord)
             return;
 
         if (TowerManager.Instance.GetTowerPrice(towerIndex) > CurrentPlayer.Resource)

@@ -1,7 +1,7 @@
 ﻿using System;
 
 [Serializable]
-public struct HexCoord 
+public struct HexCoord
 {
     public int x;
     public int y;
@@ -46,4 +46,20 @@ public struct HexCoord
     {
         return new HexCoord() { x = x + c.x, y = y + c.y };
     }
+
+    public override bool Equals(object obj)
+    {
+        return obj is HexCoord && (HexCoord)obj == this;
+    }
+
+    public static bool operator ==(HexCoord a, HexCoord b)
+    {
+        return a.x == b.x && a.y == b.y;
+    }
+
+    public static bool operator !=(HexCoord a, HexCoord b)
+    {
+        return !(a == b);
+    }
+
 }
