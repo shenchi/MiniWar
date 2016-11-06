@@ -12,11 +12,6 @@ public class MapManager : MonoBehaviour
 
     private Dictionary<HexCoord, Hexagon> hexagons;
 
-    public HexCoord GetStartPointCoord(int slot)
-    {
-        return startPoints[slot].coord;
-    }
-
     void OnEnable()
     {
 #if UNITY_EDITOR
@@ -77,7 +72,11 @@ public class MapManager : MonoBehaviour
         }
 #endif
     }
-
+    
+    public HexCoord GetStartPointCoord(int slot)
+    {
+        return startPoints[slot].coord;
+    }
 
     public Vector3 GetMountPosition(Hexagon hexagon)
     {
@@ -91,5 +90,10 @@ public class MapManager : MonoBehaviour
             return GetMountPosition(hexagons[coord]);
         }
         return HexagonUtils.Coord2Pos(coord);
+    }
+
+    public bool Exists(HexCoord coord)
+    {
+        return hexagons.ContainsKey(coord);
     }
 }

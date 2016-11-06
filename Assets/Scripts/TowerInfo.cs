@@ -4,6 +4,8 @@ using UnityEngine.Networking;
 
 public class TowerInfo : NetworkBehaviour
 {
+    public TowerType type;
+
     public int health;
     public int level;
     public int vision;

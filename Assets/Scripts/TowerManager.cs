@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.Networking;
 using System.Collections.Generic;
+using System;
 
 public class TowerManager : NetworkBehaviour
 {
@@ -75,16 +76,67 @@ public class TowerManager : NetworkBehaviour
         tower.coord = coord;
         return tower;
     }
+
+    public List<TowerInfo> GetTowersOfType(PlayerAgent player, TowerType type)
+    {
+        List<TowerInfo> ret = new List<TowerInfo>();
+
+        if (null != playerTowers && playerTowers.ContainsKey(player.SlotId))
+        {
+            foreach (var tower in playerTowers[player.SlotId])
+            {
+                if (tower.type == type)
+                    ret.Add(tower);
+            }
+        }
+
+        return ret;
+    }
+
+    public HashSet<HexCoord> GetHexagonsInRange(PlayerAgent player, TowerType type, Func<TowerInfo, int> rangeFunc)
+    {
+        HashSet<HexCoord> ret = new HashSet<HexCoord>();
+        var towerList = GetTowersOfType(player, type);
+
+        foreach (var t in towerList)
+        {
+            if (MapManager.Instance.Exists(t.coord))
+            {
+                ret.Add(t.coord);
+            }
+
+            var set = HexagonUtils.NeighborHexagons(t.coord, rangeFunc(t));
+            set.RemoveWhere(x => { return !MapManager.Instance.Exists(x); });
+            ret.UnionWith(set);
+        }
+
+        return ret;
+    }
+
+    public HashSet<HexCoord> GetHexagonsInRange(PlayerAgent player, TowerType type)
+    {
+        return GetHexagonsInRange(player, type, x => { return x.range; });
+    }
+
+
+    public HashSet<HexCoord> GetHexagonsInVision(PlayerAgent player, TowerType type)
+    {
+        return GetHexagonsInRange(player, type, x => { return x.vision; });
+    }
+
+
+    public int SumAttribute(PlayerAgent player, TowerType type, Func<TowerInfo, int> attributeFunc)
+    {
+        int ret = 0;
+        var towerList = GetTowersOfType(player, type);
+
+        foreach (var t in towerList)
+        {
+            ret += attributeFunc(t);
+        }
+
+        return ret;
+    }
     #endregion
-    
-    //public override void OnStartClient()
-    //{
-    //    if (isLocalPlayer)
-    //    {
-    //        for (int i = 0; i < towerList.Length; i++)
-    //        {
-    //            ClientScene.RegisterPrefab(towerList[i].gameObject);
-    //        }
-    //    }
-    //}
+
 }

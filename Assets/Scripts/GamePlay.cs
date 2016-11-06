@@ -21,7 +21,21 @@ public class GamePlay : NetworkBehaviour
         public int timeLimit = 0;
     }
 
-    public List<List<Phase>> phases;
+    [Serializable]
+    public class Round
+    {
+        public List<Phase> phaseList;
+        public int Count { get { return phaseList.Count; } }
+        public Phase this[int index]
+        {
+            get
+            {
+                return phaseList[index];
+            }
+        }
+    }
+
+    public List<Round> phases;
 
     #region Client
 
@@ -44,9 +58,11 @@ public class GamePlay : NetworkBehaviour
     private Dictionary<int, PlayerAgent> playerTable;
 
     private int round = -1;
+    private int player = -1;
     private int phase = -1;
 
     private Phase currentPhase = null;
+    private PlayerAgent currentPlayer = null;
     private float timeElapsed = 0.0f;
 
     public void InitPlayerList()
@@ -61,7 +77,7 @@ public class GamePlay : NetworkBehaviour
             }
         }
     }
-    
+
     public void RegisterPlayer(PlayerAgent player)
     {
         if (null == playerTable)
@@ -87,7 +103,7 @@ public class GamePlay : NetworkBehaviour
 
         if (playerList.Count == playerTable.Count)
         {
-            //NextPhase();
+            NextPhase();
         }
     }
 
@@ -95,6 +111,9 @@ public class GamePlay : NetworkBehaviour
     {
         if (round < 0)
             round = 0;
+
+        if (player < 0)
+            player = 0;
 
         if (phase < 0)
             phase = 0;
@@ -104,19 +123,29 @@ public class GamePlay : NetworkBehaviour
         if (phase >= phases[round].Count)
         {
             phase = 0;
+            player++;
+        }
+
+        if (player >= playerList.Count)
+        {
+            player = 0;
             round = (round + 1) % phases.Count;
         }
 
         currentPhase = phases[round][phase];
+        currentPlayer = playerTable[playerList[player]];
         timeElapsed = 0.0f;
 
         switch (currentPhase.type)
         {
             case PhaseType.ResourceProducing:
+                CollectResources();
                 break;
             case PhaseType.PlayerActing:
+
                 break;
             case PhaseType.Consuming:
+                DeductMaintenanceCost();
                 break;
             default:
                 break;
@@ -125,7 +154,7 @@ public class GamePlay : NetworkBehaviour
 
     void Update()
     {
-        if (!isServer || null == currentPhase)
+        if (null == currentPhase)
             return;
 
         timeElapsed += Time.deltaTime;
@@ -133,6 +162,24 @@ public class GamePlay : NetworkBehaviour
         {
             NextPhase();
         }
+    }
+
+    protected PlayerAgent CurrentPlayer { get { return currentPlayer; } }
+
+    protected virtual void CollectResources()
+    {
+        var hexes = TowerManager.Instance.GetHexagonsInRange(CurrentPlayer, TowerType.ResourceTower);
+        CurrentPlayer.AddResource(hexes.Count);
+    }
+
+    protected virtual void DeductMaintenanceCost()
+    {
+        int res =
+            TowerManager.Instance.SumAttribute(CurrentPlayer, TowerType.ResourceTower, x => { return x.cost; }) +
+            TowerManager.Instance.SumAttribute(CurrentPlayer, TowerType.VisionTower, x => { return x.cost; }) +
+            TowerManager.Instance.SumAttribute(CurrentPlayer, TowerType.AttackTower, x => { return x.cost; });
+
+        CurrentPlayer.AddResource(-res);
     }
 
     #endregion

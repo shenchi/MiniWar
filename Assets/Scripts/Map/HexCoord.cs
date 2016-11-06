@@ -41,4 +41,9 @@ public struct HexCoord
             return (x & 1) == 1;
         }
     }
+
+    public HexCoord Add(HexCoord c)
+    {
+        return new HexCoord() { x = x + c.x, y = y + c.y };
+    }
 }
