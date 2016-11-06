@@ -58,7 +58,7 @@ public class TowerInfo : NetworkBehaviour
 
     void OnDestroy()
     {
-        if (playerSlotId == VisionController.Instance.LocalPlayerSlotId)
+        if (null != VisionController.Instance && playerSlotId == VisionController.Instance.LocalPlayerSlotId)
         {
             VisionController.Instance.RemoveTower(this);
         }

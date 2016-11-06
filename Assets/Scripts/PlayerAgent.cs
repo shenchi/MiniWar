@@ -123,7 +123,8 @@ public class PlayerAgent : NetworkBehaviour
 
         if (isLocalPlayer)
         {
-            UIController.Instance.EnableUI = false;
+            if (null != UIController.Instance)
+                UIController.Instance.EnableUI = false;
         }
     }
 
