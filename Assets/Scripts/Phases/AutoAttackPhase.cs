@@ -14,10 +14,7 @@ public class AutoAttackPhase : Phase
 
         foreach (var a in allAttackers)
         {
-            var range = HexagonUtils.NeighborHexagons(a.coord, a.range);
-            range.IntersectWith(vision);
-            range.RemoveWhere(x => { return !MapManager.Instance.Exists(x); });
-
+            var range = RangeUtils.GetRangeOfTower(a, vision);
             foreach (var t in allTowers)
             {
                 if (t.playerSlotId == CurrentPlayer.SlotId)

@@ -146,10 +146,9 @@ public class PlayerAgent : NetworkBehaviour
 
     void UpdateCampVision()
     {
-        campVision = new HashSet<HexCoord>();
+        campVision = HexagonUtils.NeighborHexagons(campCoord, 1);
         campVision.Add(campCoord);
-        campVision.UnionWith(HexagonUtils.NeighborHexagons(campCoord, 1));
-        campVision.RemoveWhere(x => { return !MapManager.Instance.Exists(x); });
+        MapManager.Instance.RemoveHexagonsNotExists(campVision);
 
         if (isLocalPlayer)
         {
@@ -159,12 +158,12 @@ public class PlayerAgent : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcStartOperationMode()
+    public void RpcStartOperationMode(bool manualAttack)
     {
         if (!isLocalPlayer)
             return;
 
-        playerController.StartControl(this);
+        playerController.StartControl(this, manualAttack);
         UIController.Instance.ClearButtonActions();
 
         UIController.Instance.RegisterButtonAction("Resource", delegate () { playerController.StartBuilding(0); });

@@ -52,9 +52,11 @@ public class TowerManager : NetworkBehaviour
     private Dictionary<int, List<TowerInfo>> playerTowers = new Dictionary<int, List<TowerInfo>>();
     private Dictionary<HexCoord, TowerInfo> mapTowers = new Dictionary<HexCoord, TowerInfo>();
 
-    public bool Occupied(HexCoord coord)
+    public TowerInfo FindTowerByCoord(HexCoord coord)
     {
-        return mapTowers.ContainsKey(coord);
+        if (mapTowers.ContainsKey(coord))
+            return mapTowers[coord];
+        return null;
     }
 
     public IEnumerable<HexCoord> GetAllTowerCoords()
@@ -138,13 +140,13 @@ public class TowerManager : NetworkBehaviour
         NetworkServer.Destroy(t.gameObject);
     }
 
-    public List<TowerInfo> GetTowersOfType(PlayerAgent player, TowerType type)
+    public List<TowerInfo> GetTowersOfType(int playerSlotId, TowerType type)
     {
         List<TowerInfo> ret = new List<TowerInfo>();
 
-        if (null != playerTowers && playerTowers.ContainsKey(player.SlotId))
+        if (null != playerTowers && playerTowers.ContainsKey(playerSlotId))
         {
-            foreach (var tower in playerTowers[player.SlotId])
+            foreach (var tower in playerTowers[playerSlotId])
             {
                 if (tower.type == type)
                     ret.Add(tower);
@@ -154,10 +156,15 @@ public class TowerManager : NetworkBehaviour
         return ret;
     }
 
-    public HashSet<HexCoord> GetHexagonsInRange(PlayerAgent player, TowerType type, Func<TowerInfo, int> rangeFunc)
+    public List<TowerInfo> GetTowersOfType(PlayerAgent player, TowerType type)
+    {
+        return GetTowersOfType(player.SlotId, type);
+    }
+
+    public HashSet<HexCoord> GetHexagonsInRange(int playerSlotId, TowerType type, Func<TowerInfo, int> rangeFunc)
     {
         HashSet<HexCoord> ret = new HashSet<HexCoord>();
-        var towerList = GetTowersOfType(player, type);
+        var towerList = GetTowersOfType(playerSlotId, type);
 
         foreach (var t in towerList)
         {
@@ -167,22 +174,36 @@ public class TowerManager : NetworkBehaviour
             }
 
             var set = HexagonUtils.NeighborHexagons(t.coord, rangeFunc(t));
-            set.RemoveWhere(x => { return !MapManager.Instance.Exists(x); });
+            MapManager.Instance.RemoveHexagonsNotExists(set);
             ret.UnionWith(set);
         }
 
         return ret;
     }
 
-    public HashSet<HexCoord> GetHexagonsInRange(PlayerAgent player, TowerType type)
+    public HashSet<HexCoord> GetHexagonsInRange(PlayerAgent player, TowerType type, Func<TowerInfo, int> rangeFunc)
     {
-        return GetHexagonsInRange(player, type, x => { return x.range; });
+        return GetHexagonsInRange(player.SlotId, type, rangeFunc);
+    }
+    
+    public HashSet<HexCoord> GetHexagonsInRange(int playerSlotId, TowerType type)
+    {
+        return GetHexagonsInRange(playerSlotId, type, x => { return x.range; });
     }
 
+    public HashSet<HexCoord> GetHexagonsInRange(PlayerAgent player, TowerType type)
+    {
+        return GetHexagonsInRange(player.SlotId, type, x => { return x.range; });
+    }
+
+    public HashSet<HexCoord> GetHexagonsInVision(int playerSlotId)
+    {
+        return GetHexagonsInRange(playerSlotId, TowerType.VisionTower, x => { return x.vision; });
+    }
 
     public HashSet<HexCoord> GetHexagonsInVision(PlayerAgent player)
     {
-        return GetHexagonsInRange(player, TowerType.VisionTower, x => { return x.vision; });
+        return GetHexagonsInRange(player.SlotId, TowerType.VisionTower, x => { return x.vision; });
     }
 
 
@@ -197,6 +218,11 @@ public class TowerManager : NetworkBehaviour
         }
 
         return ret;
+    }
+
+    public void RemoveHexagonsOccupied(HashSet<HexCoord> range)
+    {
+        range.RemoveWhere(x => { return mapTowers.ContainsKey(x); });
     }
     #endregion
 

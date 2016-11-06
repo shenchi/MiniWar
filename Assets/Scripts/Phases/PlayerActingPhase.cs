@@ -3,13 +3,14 @@ using System.Collections;
 
 public class PlayerActingPhase : Phase
 {
+    public bool manualAttack = false;
     private float remainingTime = 0.0f;
 
     public override void OnEnter()
     {
         base.OnEnter();
 
-        CurrentPlayer.RpcStartOperationMode();
+        CurrentPlayer.RpcStartOperationMode(manualAttack);
         remainingTime = timeLimit;
     }
 

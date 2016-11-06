@@ -96,4 +96,9 @@ public class MapManager : MonoBehaviour
     {
         return hexagons.ContainsKey(coord);
     }
+
+    public void RemoveHexagonsNotExists(HashSet<HexCoord> range)
+    {
+        range.RemoveWhere(x => { return !Exists(x); });
+    }
 }

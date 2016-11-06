@@ -9,9 +9,9 @@ public class ResourcePhase : Phase
         base.OnEnter();
         
         var hexes = TowerManager.Instance.GetHexagonsInRange(CurrentPlayer, TowerType.ResourceTower);
-        var vision = TowerManager.Instance.GetHexagonsInVision(CurrentPlayer);
+        var vision = RangeUtils.GetPlayerVisionServer(CurrentPlayer);
         hexes.IntersectWith(vision);
-        hexes.RemoveWhere(x => { return TowerManager.Instance.Occupied(x); });
+        TowerManager.Instance.RemoveHexagonsOccupied(hexes);
         CurrentPlayer.AddResource(hexes.Count);
     }
 }

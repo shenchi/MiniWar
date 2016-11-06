@@ -10,6 +10,7 @@ public class GamePlay : NetworkBehaviour
     [Serializable]
     public class Round
     {
+        public bool forEachPlayer;
         public List<Phase> phaseList;
         public int Count { get { return phaseList.Count; } }
         public Phase this[int index]
@@ -117,20 +118,30 @@ public class GamePlay : NetworkBehaviour
         else
             phase++;
 
+        bool forEachPlayer = phases[round].forEachPlayer;
+
         if (phase >= phases[round].Count)
         {
             phase = 0;
-            player++;
+            if (forEachPlayer)
+            {
+                player++;
+                
+                if (player >= playerList.Count)
+                {
+                    player = 0;
+                    round = (round + 1) % phases.Count;
+                }
+            }
+            else
+            {
+                round = (round + 1) % phases.Count;
+            }
         }
 
-        if (player >= playerList.Count)
-        {
-            player = 0;
-            round = (round + 1) % phases.Count;
-        }
 
         currentPhase = phases[round][phase];
-        currentPlayer = playerTable[playerList[player]];
+        currentPlayer = forEachPlayer ? playerTable[playerList[player]] : null;
         currentPhase.CurrentPlayer = currentPlayer;
         timeElapsed = 0.0f;
         finishCurrentPhase = false;
@@ -144,7 +155,7 @@ public class GamePlay : NetworkBehaviour
             return;
 
         timeElapsed += Time.deltaTime;
-        if (finishCurrentPhase || timeElapsed > currentPhase.timeLimit)
+        if (finishCurrentPhase || (currentPhase.timeLimit >= 0 && timeElapsed > currentPhase.timeLimit))
         {
             currentPhase.OnExit();
             NextPhase();

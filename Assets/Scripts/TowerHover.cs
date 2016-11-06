@@ -4,26 +4,21 @@ using UnityEngine.EventSystems;
 using System;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(TowerInfo))]
+[RequireComponent(typeof(TowerInfo), typeof(RangeIndicator))]
 public class TowerHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    public Mesh mesh;
-    public Material material;
-
-    public bool showRange = false;
+    private RangeIndicator indicator;
 
     private int range = 0;
-    private List<Vector3> positions = null;
-    private Vector3 lastPosition;
-    private int layer = 0;
-
-    void Awake()
-    {
-        layer = LayerMask.NameToLayer("TransparentFX");
-    }
+    private Vector3 curPosition;
 
     void OnEnable()
     {
+        indicator = GetComponent<RangeIndicator>();
+        curPosition = transform.position;
+        UpdateRange();
+
+        indicator.enabled = false;
         var t = GetComponent<TowerInfo>();
         if (t.type == TowerType.VisionTower)
         {
@@ -35,43 +30,33 @@ public class TowerHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         }
     }
 
+    void OnDisable()
+    {
+        indicator.enabled = false;
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
-        showRange = true;
+        indicator.enabled = true;
 
-        if (positions == null || lastPosition != transform.position)
+        if (curPosition != transform.position)
         {
-            lastPosition = transform.position;
-            HexCoord c = HexagonUtils.Pos2Coord(lastPosition);
-            var r = HexagonUtils.NeighborHexagons(c, range);
-            r.Add(c);
-            r.IntersectWith(VisionController.Instance.Vision);
-            r.RemoveWhere(x => { return !MapManager.Instance.Exists(x); });
-
-            positions = new List<Vector3>();
-            foreach (var coord in r)
-            {
-                Vector3 pos = MapManager.Instance.GetMountPosition(coord) + Vector3.up * 0.02f;
-                positions.Add(pos);
-            }
+            curPosition = transform.position;
+            UpdateRange();
         }
+    }
+
+    public void UpdateRange()
+    {
+        HexCoord c = HexagonUtils.Pos2Coord(curPosition);
+        var r = RangeUtils.GetRangeClient(c, range);
+        r.Add(c);
+        indicator.SetRange(r);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        showRange = false;
+        indicator.enabled = false;
     }
-
-    void OnRenderObject()
-    {
-        if (!showRange)
-            return;
-
-        material.SetPass(0);
-
-        for (int i = 0; i < positions.Count; i++)
-        {
-            Graphics.DrawMeshNow(mesh, positions[i], Quaternion.identity);
-        }
-    }
+    
 }

@@ -1,16 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.Networking;
+using System.Collections.Generic;
 
 public class PlayerController : NetworkBehaviour
 {
     #region Client
+
+    private Camera cam;
+
     public PlayerAgent CurrentPlayer { get; private set; }
 
     public enum State
     {
         Idle,
         SelectBuildingCoord,
+        SelectAttactTarget,
     }
 
     private State state = State.Idle;
@@ -19,13 +24,21 @@ public class PlayerController : NetworkBehaviour
 
     public bool Idle { get { return state == State.Idle; } }
 
+    public bool ManualAttackEnabled { get; private set; }
+
     private int buildingTowerIndex;
 
+    private TowerInfo attackerTower;
+    private HexCoord attackerCoord;
+    private HashSet<HexCoord> attackerRange;
+
     private int terrainMask;
+    private int towerMask;
 
     void Awake()
     {
         terrainMask = LayerMask.GetMask("Terrain");
+        towerMask = LayerMask.GetMask("Tower");
     }
 
     void OnDestroy()
@@ -33,15 +46,19 @@ public class PlayerController : NetworkBehaviour
         EndControl();
     }
 
-    public void StartControl(PlayerAgent player)
+    public void StartControl(PlayerAgent player, bool manualAttack)
     {
+        cam = FindObjectOfType<Camera>();
         CurrentPlayer = player;
+        ManualAttackEnabled = manualAttack;
     }
 
     public void EndControl()
     {
+        SwitchTo(State.Idle);
         CurrentPlayer = null;
-        state = State.Idle;
+        ManualAttackEnabled = false;
+        cam = null;
     }
 
     public void StartBuilding(int towerIndex)
@@ -53,36 +70,137 @@ public class PlayerController : NetworkBehaviour
             return;
 
         buildingTowerIndex = towerIndex;
-        state = State.SelectBuildingCoord;
+        SwitchTo(State.SelectBuildingCoord);
     }
 
     void Update()
     {
-        if (state == State.SelectBuildingCoord)
+        if (null == CurrentPlayer)
+            return;
+
+        if (Input.GetMouseButtonDown(0))
         {
-            if (Input.GetMouseButton(0))
+            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+            switch (state)
             {
-                Camera cam = FindObjectOfType<Camera>();
-                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hitInfo;
-                if (Physics.Raycast(ray, out hitInfo, float.MaxValue, terrainMask))
-                {
-                    Hexagon h = hitInfo.collider.GetComponent<Hexagon>();
-                    if (null != h)
+                case State.Idle:
                     {
-                        CmdTryBuildTower(CurrentPlayer.SlotId, buildingTowerIndex, h.coord);
+                        if (ManualAttackEnabled)
+                        {
+                            RaycastHit hitInfo;
+                            if (Physics.Raycast(ray, out hitInfo, float.MaxValue, towerMask))
+                            {
+                                var t = hitInfo.collider.GetComponent<TowerInfo>();
+                                if (null != t && t.playerSlotId == CurrentPlayer.SlotId && t.type == TowerType.AttackTower)
+                                {
+                                    attackerTower = t;
+                                    attackerCoord = t.coord;
+                                    attackerRange = RangeUtils.GetRangeOfTowerForLocalPlayerClient(t);
+                                    SwitchTo(State.SelectAttactTarget);
+                                }
+                            }
+                        }
                     }
-                }
+                    break;
+                case State.SelectBuildingCoord:
+                    {
+                        RaycastHit hitInfo;
+                        if (Physics.Raycast(ray, out hitInfo, float.MaxValue, terrainMask))
+                        {
+                            var h = hitInfo.collider.GetComponent<Hexagon>();
+                            if (null != h)
+                            {
+                                CmdTryBuildTower(CurrentPlayer.SlotId, buildingTowerIndex, h.coord);
+                            }
+                        }
+                    }
+                    break;
+                case State.SelectAttactTarget:
+                    {
+                        if (ManualAttackEnabled)
+                        {
+                            RaycastHit hitInfo;
+                            if (Physics.Raycast(ray, out hitInfo, float.MaxValue, towerMask))
+                            {
+                                var t = hitInfo.collider.GetComponent<TowerInfo>();
+                                if (null != t && t.playerSlotId != CurrentPlayer.SlotId)
+                                {
+                                    if (attackerCoord != HexCoord.Invalid && attackerRange.Contains(t.coord))
+                                        CmdTryAttackTower(CurrentPlayer.SlotId, attackerCoord, t.coord);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    break;
             }
+        }
+        else if (Input.GetMouseButtonDown(1))
+        {
+            SwitchTo(State.Idle);
         }
     }
 
-    [ClientRpc]
-    void RpcBuildingSuccess()
+    void SwitchTo(State newState)
     {
-        state = State.Idle;
+        if (newState == state)
+            return;
+
+        // exiting
+        switch (state)
+        {
+            case State.SelectBuildingCoord:
+                buildingTowerIndex = -1;
+                break;
+            case State.SelectAttactTarget:
+                {
+                    attackerTower.GetComponent<RangeIndicator>().enabled = false;
+                    attackerTower.GetComponent<RangeIndicator>().RestoreMaterial();
+                    attackerTower.GetComponent<TowerHover>().enabled = true;
+                    attackerTower = null;
+                    attackerCoord = HexCoord.Invalid;
+                    attackerRange = null;
+                }
+                break;
+            default:
+                break;
+        }
+
+        state = newState;
+
+        // enterting
+        switch (state)
+        {
+            case State.SelectAttactTarget:
+                {
+                    if (null != attackerTower)
+                    {
+                        attackerTower.GetComponent<TowerHover>().enabled = false;
+                        attackerTower.GetComponent<RangeIndicator>().TintColor = new Color(1.0f, 0.0f, 0.0f, 0.5f);
+                        attackerTower.GetComponent<RangeIndicator>().enabled = true;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+
     }
 
+    [ClientRpc]
+    void RpcBuildingSuccess(int towerIndex)
+    {
+        if (state == State.SelectBuildingCoord && buildingTowerIndex == towerIndex)
+            SwitchTo(State.Idle);
+    }
+
+    [ClientRpc]
+    void RpcAttackSuccess(HexCoord attackerCoord)
+    {
+        if (state == State.SelectAttactTarget && this.attackerCoord == attackerCoord)
+            SwitchTo(State.Idle);
+    }
     #endregion
 
 
@@ -95,7 +213,32 @@ public class PlayerController : NetworkBehaviour
         var tower = TowerManager.Instance.BuildTower(player, coord, towerIndex);
         if (null != tower)
         {
-            RpcBuildingSuccess();
+            RpcBuildingSuccess(towerIndex);
+        }
+    }
+
+    [Command]
+    void CmdTryAttackTower(int playerSlot, HexCoord attackerCoord, HexCoord attackeeCoord)
+    {
+        var attacker = TowerManager.Instance.FindTowerByCoord(attackerCoord);
+        if (attacker == null || attacker.type != TowerType.AttackTower || attacker.playerSlotId != playerSlot)
+            return;
+
+        var attackee = TowerManager.Instance.FindTowerByCoord(attackeeCoord);
+        if (attackee == null || attackee.playerSlotId == playerSlot)
+            return;
+
+        var vision = TowerManager.Instance.GetHexagonsInVision(playerSlot);
+        var range = RangeUtils.GetRangeOfTower(attacker, vision);
+
+        if (range.Contains(attackee.coord))
+        {
+            attackee.health--;
+            if (attackee.health <= 0)
+            {
+                TowerManager.Instance.DestroyTower(attackee);
+            }
+            RpcAttackSuccess(attackerCoord);
         }
     }
     #endregion

@@ -62,4 +62,13 @@ public struct HexCoord
         return !(a == b);
     }
 
+    public override int GetHashCode()
+    {
+        int hash = 23;
+        hash = (13 * hash) + x.GetHashCode();
+        hash = (13 * hash) + y.GetHashCode(); 
+        return hash;
+    }
+
+    public static readonly HexCoord Invalid = new HexCoord() { x = int.MaxValue, y = int.MaxValue };
 }

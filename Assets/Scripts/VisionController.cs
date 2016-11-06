@@ -41,7 +41,7 @@ public class VisionController : MonoBehaviour
 
         var v = HexagonUtils.NeighborHexagons(t.coord, t.vision);
         v.Add(t.coord);
-        v.RemoveWhere(x => { return !MapManager.Instance.Exists(x); });
+        MapManager.Instance.RemoveHexagonsNotExists(v);
         Vision.UnionWith(v);
     }
 
