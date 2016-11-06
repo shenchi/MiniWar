@@ -7,20 +7,6 @@ using System;
 public class GamePlay : NetworkBehaviour
 {
 
-    public enum PhaseType
-    {
-        ResourceProducing,
-        PlayerActing,
-        Consuming,
-    }
-
-    [Serializable]
-    public class Phase
-    {
-        public PhaseType type;
-        public int timeLimit = 0;
-    }
-
     [Serializable]
     public class Round
     {
@@ -134,22 +120,10 @@ public class GamePlay : NetworkBehaviour
 
         currentPhase = phases[round][phase];
         currentPlayer = playerTable[playerList[player]];
+        currentPhase.CurrentPlayer = currentPlayer;
         timeElapsed = 0.0f;
 
-        switch (currentPhase.type)
-        {
-            case PhaseType.ResourceProducing:
-                CollectResources();
-                break;
-            case PhaseType.PlayerActing:
-
-                break;
-            case PhaseType.Consuming:
-                DeductMaintenanceCost();
-                break;
-            default:
-                break;
-        }
+        currentPhase.OnEnter();
     }
 
     void Update()
@@ -160,26 +134,13 @@ public class GamePlay : NetworkBehaviour
         timeElapsed += Time.deltaTime;
         if (timeElapsed > currentPhase.timeLimit)
         {
+            currentPhase.OnExit();
             NextPhase();
         }
-    }
-
-    protected PlayerAgent CurrentPlayer { get { return currentPlayer; } }
-
-    protected virtual void CollectResources()
-    {
-        var hexes = TowerManager.Instance.GetHexagonsInRange(CurrentPlayer, TowerType.ResourceTower);
-        CurrentPlayer.AddResource(hexes.Count);
-    }
-
-    protected virtual void DeductMaintenanceCost()
-    {
-        int res =
-            TowerManager.Instance.SumAttribute(CurrentPlayer, TowerType.ResourceTower, x => { return x.cost; }) +
-            TowerManager.Instance.SumAttribute(CurrentPlayer, TowerType.VisionTower, x => { return x.cost; }) +
-            TowerManager.Instance.SumAttribute(CurrentPlayer, TowerType.AttackTower, x => { return x.cost; });
-
-        CurrentPlayer.AddResource(-res);
+        else
+        {
+            currentPhase.OnTick();
+        }
     }
 
     #endregion

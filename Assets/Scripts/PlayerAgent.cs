@@ -118,5 +118,33 @@ public class PlayerAgent : NetworkBehaviour
         }
     }
 
+    [ClientRpc]
+    public void RpcStartOperationMode()
+    {
+        if (!isLocalPlayer)
+            return;
+
+        UIController.Instance.EnableBuildingPanel = true;
+        UIController.Instance.RemainingTime = 1.0f;
+    }
+
+    [ClientRpc]
+    public void RpcEndOperationMode()
+    {
+        if (!isLocalPlayer)
+            return;
+        
+        UIController.Instance.EnableBuildingPanel = false;
+    }
+
+    [ClientRpc]
+    public void RpcSetOperationModeRemainingTime(float remainingTime)
+    {
+        if (!isLocalPlayer)
+            return;
+
+        UIController.Instance.RemainingTime = remainingTime;
+    }
+
     #endregion
 }
