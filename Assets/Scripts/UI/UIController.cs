@@ -50,7 +50,7 @@ public class UIController : MonoBehaviour
         }
     }
 
-    void OnEnable()
+    void Awake()
     {
         canvas = GetComponent<Canvas>();
         if (Instance != null)
@@ -58,7 +58,7 @@ public class UIController : MonoBehaviour
         Instance = this;
     }
 
-    void OnDestroy()
+    void OnDisable()
     {
         if (Instance == this)
             Instance = null;
@@ -71,7 +71,15 @@ public class UIController : MonoBehaviour
 
     public void RegisterBuildingButton(string type, Action action)
     {
-        buildingActions[type] += action;
+        if (!buildingActions.ContainsKey(type))
+            buildingActions.Add(type, action);
+        else
+            buildingActions[type] += action;
+    }
+
+    public void ClearBuildingButtonActions()
+    {
+        buildingActions = new Dictionary<string, Action>();
     }
 
     public void OnBuildingButton(string type)

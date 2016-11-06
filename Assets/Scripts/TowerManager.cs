@@ -34,17 +34,25 @@ public class TowerManager : NetworkBehaviour
         Instance = this;
     }
 
-    void OnDestroy()
+    void OnDisable()
     {
         if (Instance == this)
             Instance = null;
     }
 
+    public int GetTowerPrice(int index)
+    {
+        if (index < 0 || index > towerList.Length)
+            return 0;
+        return towerList[index].price;
+    }
+
     #region Server
 
-    private Dictionary<int, List<TowerInfo>> playerTowers = null;
+    private Dictionary<int, List<TowerInfo>> playerTowers = new Dictionary<int, List<TowerInfo>>();
+    private Dictionary<HexCoord, TowerInfo> mapTowers = new Dictionary<HexCoord, TowerInfo>();
 
-    public TowerInfo BuildTower(PlayerAgent player, int index = -1)
+    public TowerInfo BuildTower(PlayerAgent player, HexCoord coord, int index = -1)
     {
         if (index < 0)
             index = defaultTower;
@@ -52,28 +60,39 @@ public class TowerManager : NetworkBehaviour
         if (index < 0 || index >= towerList.Length)
             return null;
 
+        int price = towerList[index].price;
+
+        if (!playerTowers.ContainsKey(player.SlotId) && index == defaultTower)
+        {
+            price = 0;
+        }
+
+        if (player.Resource < price)
+        {
+            return null;
+        }
+
+        if (mapTowers.ContainsKey(coord))
+        {
+            return null;
+        }
+
         var tower = Instantiate(towerList[index]);
         NetworkServer.Spawn(tower.gameObject);
 
         tower.player = player;
         tower.labelColor = player.PlayerColor;
 
-        if (null == playerTowers)
-            playerTowers = new Dictionary<int, List<TowerInfo>>();
-
         if (!playerTowers.ContainsKey(player.SlotId))
             playerTowers.Add(player.SlotId, new List<TowerInfo>());
 
         playerTowers[player.SlotId].Add(tower);
-
-        return tower;
-    }
-
-
-    public TowerInfo BuildTower(PlayerAgent player, HexCoord coord, int index = -1)
-    {
-        var tower = BuildTower(player, index);
+        
         tower.coord = coord;
+        mapTowers.Add(coord, tower);
+
+        player.AddResource(-price);
+
         return tower;
     }
 

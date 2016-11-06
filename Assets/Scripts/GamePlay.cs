@@ -22,9 +22,7 @@ public class GamePlay : NetworkBehaviour
     }
 
     public List<Round> phases;
-
-    #region Client
-
+    
     public static GamePlay Instance { get; private set; }
 
     void OnEnable()
@@ -34,8 +32,12 @@ public class GamePlay : NetworkBehaviour
         Instance = this;
     }
 
-    #endregion
-
+    void OnDisable()
+    {
+        if (this == Instance)
+            Instance = null;
+    }
+    
     #region Server
 
     public GameManager manager { get; set; }
@@ -91,6 +93,13 @@ public class GamePlay : NetworkBehaviour
         {
             NextPhase();
         }
+    }
+
+    public PlayerAgent FindPlayerAgentBySlotId(int slotId)
+    {
+        if (playerTable.ContainsKey(slotId))
+            return playerTable[slotId];
+        return null;
     }
 
     void NextPhase()

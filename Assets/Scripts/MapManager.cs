@@ -38,7 +38,7 @@ public class MapManager : MonoBehaviour
 #endif
     }
 
-    void OnDestroy()
+    void OnDisable()
     {
 #if UNITY_EDITOR
         if (Application.isPlaying)

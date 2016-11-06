@@ -27,6 +27,8 @@ public class PlayerAgent : NetworkBehaviour
     [SyncVar(hook = "OnPlayerInfoUpdate")]
     private PlayerInfo playerInfo;
 
+    public int Resource { get { return playerInfo.resource; } }
+
     #region Server
 
     [Command]
@@ -124,17 +126,13 @@ public class PlayerAgent : NetworkBehaviour
         if (!isLocalPlayer)
             return;
 
+        PlayerController.Instance.StartControl(this);
+        UIController.Instance.ClearBuildingButtonActions();
+        UIController.Instance.RegisterBuildingButton("Resource", delegate () { PlayerController.Instance.StartBuilding(0); });
+        UIController.Instance.RegisterBuildingButton("Vision", delegate () { PlayerController.Instance.StartBuilding(1); });
+        UIController.Instance.RegisterBuildingButton("Attack", delegate () { PlayerController.Instance.StartBuilding(2); });
         UIController.Instance.EnableBuildingPanel = true;
         UIController.Instance.RemainingTime = 1.0f;
-    }
-
-    [ClientRpc]
-    public void RpcEndOperationMode()
-    {
-        if (!isLocalPlayer)
-            return;
-        
-        UIController.Instance.EnableBuildingPanel = false;
     }
 
     [ClientRpc]
@@ -145,6 +143,18 @@ public class PlayerAgent : NetworkBehaviour
 
         UIController.Instance.RemainingTime = remainingTime;
     }
+
+    [ClientRpc]
+    public void RpcEndOperationMode()
+    {
+        if (!isLocalPlayer)
+            return;
+
+        UIController.Instance.ClearBuildingButtonActions();
+        PlayerController.Instance.EndControl();
+        UIController.Instance.EnableBuildingPanel = false;
+    }
+
 
     #endregion
 }
