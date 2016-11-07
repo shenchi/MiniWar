@@ -28,6 +28,20 @@ public class PlayerAgent : NetworkBehaviour
     [SyncVar(hook = "OnPlayerInfoUpdate")]
     private PlayerInfo playerInfo;
 
+    public PlayerInfo PlayerInfo { get { return playerInfo; } }
+
+    public enum State
+    {
+        Unregistered,
+        Ready,
+        InGame,
+        Lose,
+        Win,
+    }
+
+    [SyncVar(hook = "OnGameStateChanged")]
+    public State GameState = State.Unregistered;
+
     private HashSet<HexCoord> campVision = new HashSet<HexCoord>();
     private HexCoord campCoord = new HexCoord() { x = int.MaxValue, y = int.MaxValue };
 
@@ -57,7 +71,6 @@ public class PlayerAgent : NetworkBehaviour
                         resource = 0,
                         camp = MapManager.Instance.GetStartPointCoord(slotId)
                     };
-                    TowerManager.Instance.BuildTower(this, playerInfo.camp);
                     GamePlay.Instance.RegisterPlayer(this);
                 }
                 )
@@ -97,7 +110,7 @@ public class PlayerAgent : NetworkBehaviour
                 slotId = mgr.LocalPlayerSlotId;
             }
 
-            UIController.Instance.EnableUI = true;
+            UIController.Instance.EnableInGameUI = true;
             visionController = gameObject.AddComponent<VisionController>();
             visionController.LocalPlayerSlotId = slotId;
 
@@ -124,7 +137,7 @@ public class PlayerAgent : NetworkBehaviour
         if (isLocalPlayer)
         {
             if (null != UIController.Instance)
-                UIController.Instance.EnableUI = false;
+                UIController.Instance.EnableInGameUI = false;
         }
     }
 
@@ -157,6 +170,58 @@ public class PlayerAgent : NetworkBehaviour
         }
     }
 
+    void OnGameStateChanged(State newState)
+    {
+        if (GameState == newState)
+            return;
+
+        // exit
+        switch(GameState)
+        {
+            default:
+                break;
+        }
+
+        GameState = newState;
+        
+        // enter
+        switch (GameState)
+        {
+            case State.InGame:
+                {
+                    UIController.Instance.ClearButtonActions();
+
+                    var towerTemplates = TowerManager.Instance.towerList;
+                    for (int i = 0; i < towerTemplates.Length; i++)
+                    {
+                        UIController.Instance.SetBuildButtonText(i, towerTemplates[i].type.ToString() + "\nPrice: " +
+                            towerTemplates[i].price + "\nCost: " + towerTemplates[i].cost);
+
+                        UIController.Instance.RegisterButtonAction("BuildButton" + i, 
+                            delegate (string t) 
+                            {
+                                int idx = int.Parse(t.Replace("BuildButton", string.Empty));
+                                playerController.StartBuilding(idx);
+                            }
+                            );
+                    }
+                    
+                    UIController.Instance.RegisterButtonAction("CancelBuilding", delegate (string t) { CmdFinishCurrentPhase(); });
+                }
+                break;
+            case State.Win:
+                UIController.Instance.EnableInGameUI = false;
+                UIController.Instance.ShowWin(true);
+                break;
+            case State.Lose:
+                UIController.Instance.EnableInGameUI = false;
+                UIController.Instance.ShowLose(true);
+                break;
+            default:
+                break;
+        }
+    }
+
     [ClientRpc]
     public void RpcStartOperationMode(bool manualAttack)
     {
@@ -164,13 +229,7 @@ public class PlayerAgent : NetworkBehaviour
             return;
 
         playerController.StartControl(this, manualAttack);
-        UIController.Instance.ClearButtonActions();
-
-        UIController.Instance.RegisterButtonAction("Resource", delegate () { playerController.StartBuilding(0); });
-        UIController.Instance.RegisterButtonAction("Vision", delegate () { playerController.StartBuilding(1); });
-        UIController.Instance.RegisterButtonAction("Attack", delegate () { playerController.StartBuilding(2); });
-        UIController.Instance.RegisterButtonAction("CancelBuilding", delegate () { CmdFinishCurrentPhase(); });
-
+        
         UIController.Instance.EnableBuildingPanel = true;
         UIController.Instance.RemainingTime = 1.0f;
     }
@@ -189,8 +248,7 @@ public class PlayerAgent : NetworkBehaviour
     {
         if (!isLocalPlayer)
             return;
-
-        UIController.Instance.ClearButtonActions();
+        
         playerController.EndControl();
         UIController.Instance.EnableBuildingPanel = false;
     }

@@ -8,10 +8,12 @@ public class GamePlay : NetworkBehaviour
 {
 
     [Serializable]
-    public class Round
+    public struct Round
     {
+        public bool once;
         public bool forEachPlayer;
         public List<Phase> phaseList;
+
         public int Count { get { return phaseList.Count; } }
         public Phase this[int index]
         {
@@ -23,13 +25,30 @@ public class GamePlay : NetworkBehaviour
     }
 
     public List<Round> phases;
-    
+
+    private List<Round> runtimePhases;
+
     public static GamePlay Instance { get; private set; }
 
     void OnEnable()
     {
         if (Instance)
             throw new System.Exception("GamePlay already exists!");
+
+        runtimePhases = new List<Round>();
+        for (int r = 0; r < phases.Count; r++)
+        {
+            var round = phases[r];
+            round.phaseList = new List<Phase>();
+            for (int p = 0; p < phases[r].Count; p++)
+            {
+                var phase = Instantiate(phases[r][p]);
+                phase.transform.parent = transform;
+                round.phaseList.Add(phase);
+            }
+            runtimePhases.Add(round);
+        }
+
         Instance = this;
     }
 
@@ -38,7 +57,7 @@ public class GamePlay : NetworkBehaviour
         if (this == Instance)
             Instance = null;
     }
-    
+
     #region Server
 
     public GameManager manager { get; set; }
@@ -85,17 +104,33 @@ public class GamePlay : NetworkBehaviour
             }
         }
 
-        if (!inList || playerTable.ContainsKey(player.SlotId))
+        if (!inList || playerTable.ContainsKey(player.SlotId) || player.GameState != PlayerAgent.State.Unregistered)
         {
             return;
         }
 
         playerTable.Add(player.SlotId, player);
+        player.GameState = PlayerAgent.State.Ready;
 
         if (playerList.Count == playerTable.Count)
         {
+            foreach (var p in playerTable.Values)
+            {
+                p.GameState = PlayerAgent.State.InGame;
+            }
+
             NextPhase();
         }
+    }
+
+    public List<PlayerAgent> GetAllPlayers()
+    {
+        var ret = new List<PlayerAgent>();
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            ret.Add(playerTable[playerList[i]]);
+        }
+        return ret;
     }
 
     public PlayerAgent FindPlayerAgentBySlotId(int slotId)
@@ -117,36 +152,47 @@ public class GamePlay : NetworkBehaviour
             phase = 0;
         else
             phase++;
-
-        bool forEachPlayer = phases[round].forEachPlayer;
-
-        if (phase >= phases[round].Count)
+        
+        if (phase >= runtimePhases[round].Count)
         {
             phase = 0;
-            if (forEachPlayer)
+            if (runtimePhases[round].forEachPlayer)
             {
                 player++;
-                
+
                 if (player >= playerList.Count)
                 {
                     player = 0;
-                    round = (round + 1) % phases.Count;
+                    NextRound();
                 }
             }
             else
             {
-                round = (round + 1) % phases.Count;
+                NextRound();
             }
         }
 
-
-        currentPhase = phases[round][phase];
-        currentPlayer = forEachPlayer ? playerTable[playerList[player]] : null;
+        currentPhase = runtimePhases[round][phase];
+        currentPlayer = runtimePhases[round].forEachPlayer ? playerTable[playerList[player]] : null;
         currentPhase.CurrentPlayer = currentPlayer;
+        currentPhase.GameOver = false;
         timeElapsed = 0.0f;
         finishCurrentPhase = false;
 
         currentPhase.OnEnter();
+    }
+
+    void NextRound()
+    {
+        if (runtimePhases[round].once)
+        {
+            runtimePhases.RemoveAt(round);
+        }
+        else
+        {
+            round++;
+        }
+        round %= runtimePhases.Count;
     }
 
     void Update()
@@ -158,7 +204,15 @@ public class GamePlay : NetworkBehaviour
         if (finishCurrentPhase || (currentPhase.timeLimit >= 0 && timeElapsed > currentPhase.timeLimit))
         {
             currentPhase.OnExit();
-            NextPhase();
+
+            if (currentPhase.GameOver)
+            {
+                // TODO
+            }
+            else
+            {
+                NextPhase();
+            }
         }
         else
         {

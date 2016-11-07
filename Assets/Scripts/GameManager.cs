@@ -1,17 +1,22 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class GameManager : NetworkLobbyManager
 {
-    public GamePlay gamePlayPrefab;
-    public TowerManager towerManagerPrefab;
+    public GamePlay[] gamePlayPrefabs;
+    public TowerManager[] towerManagerPrefabs;
+    
+    public int SelectedGamePlay { get; set; }
+
+    public int SelectedTowerManager { get; set; }
 
     private GamePlay gamePlay = null;
     private TowerManager towerManager = null;
 
     public int LocalPlayerSlotId { get; set; }
-    
+
     public override void OnLobbyServerSceneChanged(string sceneName)
     {
         base.OnLobbyServerSceneChanged(sceneName);
@@ -19,13 +24,13 @@ public class GameManager : NetworkLobbyManager
         {
             if (null == gamePlay)
             {
-                gamePlay = Instantiate(gamePlayPrefab);
+                gamePlay = Instantiate(gamePlayPrefabs[SelectedGamePlay]);
                 gamePlay.manager = this;
                 gamePlay.InitPlayerList();
             }
             if (null == towerManager)
             {
-                towerManager = Instantiate(towerManagerPrefab);
+                towerManager = Instantiate(towerManagerPrefabs[SelectedTowerManager]);
                 NetworkServer.Spawn(towerManager.gameObject);
             }
         }
@@ -45,5 +50,21 @@ public class GameManager : NetworkLobbyManager
         {
             Destroy(objs[i]);
         }
+    }
+
+    void OnGUI()
+    {
+        if (!showLobbyGUI)
+        {
+            return;
+        }
+        string name = SceneManager.GetSceneAt(0).name;
+        if (name != lobbyScene)
+        {
+            return;
+        }
+        Rect position = new Rect(90f, 180f, 500f, 150f);
+        GUI.Box(position, "Players:");
+        
     }
 }

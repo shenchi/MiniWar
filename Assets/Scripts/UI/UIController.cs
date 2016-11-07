@@ -7,22 +7,28 @@ public class UIController : MonoBehaviour
 {
     public static UIController Instance { get; private set; }
 
+    public GameObject inGamePanel;
+
     public Text resText;
     public GameObject buildPanel;
     public ProgressBar progressBar;
 
-    private Canvas canvas;
-    private Dictionary<string, Action> buttonActions = new Dictionary<string, Action>();
+    public Text winText;
+    public Text loseText;
+    public Text noticeText;
 
-    public bool EnableUI
+    public Button[] buildButtonList;
+    private Dictionary<string, Action<string>> buttonActions = new Dictionary<string, Action<string>>();
+
+    public bool EnableInGameUI
     {
         get
         {
-            return canvas.enabled;
+            return inGamePanel.activeSelf;
         }
         set
         {
-            canvas.enabled = value;
+            inGamePanel.SetActive(value);
         }
     }
 
@@ -37,7 +43,7 @@ public class UIController : MonoBehaviour
             buildPanel.SetActive(value);
         }
     }
-    
+
     public float RemainingTime
     {
         get
@@ -50,9 +56,18 @@ public class UIController : MonoBehaviour
         }
     }
 
+    public void ShowWin(bool visible)
+    {
+        winText.gameObject.SetActive(visible);
+    }
+
+    public void ShowLose(bool visible)
+    {
+        loseText.gameObject.SetActive(visible);
+    }
+
     void Awake()
     {
-        canvas = GetComponent<Canvas>();
         if (Instance != null)
             throw new System.Exception("UIController already exists");
         Instance = this;
@@ -68,8 +83,22 @@ public class UIController : MonoBehaviour
     {
         resText.text = res.ToString();
     }
+    
+    public void SetBuildButtonText(int index, string text)
+    {
+        buildButtonList[index].GetComponentInChildren<Text>().text = text;
+    }
 
-    public void RegisterButtonAction(string type, Action action)
+    public void SetBuildButtonTexts(string[] text)
+    {
+        int count = Mathf.Min(text.Length, buildButtonList.Length);
+        for (int i = 0; i < count; i++)
+        {
+            SetBuildButtonText(i, text[i]);
+        }
+    }
+    
+    public void RegisterButtonAction(string type, Action<string> action)
     {
         if (!buttonActions.ContainsKey(type))
             buttonActions.Add(type, action);
@@ -79,12 +108,12 @@ public class UIController : MonoBehaviour
 
     public void ClearButtonActions()
     {
-        buttonActions = new Dictionary<string, Action>();
+        buttonActions = new Dictionary<string, Action<string>>();
     }
 
     public void OnButtonClicked(string type)
     {
         if (buttonActions.ContainsKey(type))
-            buttonActions[type]();
+            buttonActions[type](type);
     }
 }
