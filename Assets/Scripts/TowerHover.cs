@@ -14,11 +14,6 @@ public class TowerHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     void OnEnable()
     {
-        indicator = GetComponent<RangeIndicator>();
-        curPosition = transform.position;
-        UpdateRange();
-
-        indicator.enabled = false;
         var t = GetComponent<TowerInfo>();
         if (t.type == TowerType.VisionTower)
         {
@@ -28,6 +23,12 @@ public class TowerHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         {
             range = t.range;
         }
+
+        indicator = GetComponent<RangeIndicator>();
+        curPosition = transform.position;
+        UpdateRange();
+
+        indicator.enabled = false;
     }
 
     void OnDisable()
@@ -58,5 +59,5 @@ public class TowerHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
         indicator.enabled = false;
     }
-    
+
 }

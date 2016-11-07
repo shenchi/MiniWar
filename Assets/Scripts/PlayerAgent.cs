@@ -176,18 +176,19 @@ public class PlayerAgent : NetworkBehaviour
             return;
 
         // exit
-        switch(GameState)
+        switch (GameState)
         {
             default:
                 break;
         }
 
         GameState = newState;
-        
+
         // enter
         switch (GameState)
         {
             case State.InGame:
+                if (isLocalPlayer)
                 {
                     UIController.Instance.ClearButtonActions();
 
@@ -197,25 +198,31 @@ public class PlayerAgent : NetworkBehaviour
                         UIController.Instance.SetBuildButtonText(i, towerTemplates[i].type.ToString() + "\nPrice: " +
                             towerTemplates[i].price + "\nCost: " + towerTemplates[i].cost);
 
-                        UIController.Instance.RegisterButtonAction("BuildButton" + i, 
-                            delegate (string t) 
+                        UIController.Instance.RegisterButtonAction("BuildButton" + i,
+                            delegate (string t)
                             {
                                 int idx = int.Parse(t.Replace("BuildButton", string.Empty));
                                 playerController.StartBuilding(idx);
                             }
                             );
                     }
-                    
+
                     UIController.Instance.RegisterButtonAction("CancelBuilding", delegate (string t) { CmdFinishCurrentPhase(); });
                 }
                 break;
             case State.Win:
-                UIController.Instance.EnableInGameUI = false;
-                UIController.Instance.ShowWin(true);
+                if (isLocalPlayer)
+                {
+                    UIController.Instance.EnableInGameUI = false;
+                    UIController.Instance.ShowWin(true);
+                }
                 break;
             case State.Lose:
-                UIController.Instance.EnableInGameUI = false;
-                UIController.Instance.ShowLose(true);
+                if (isLocalPlayer)
+                {
+                    UIController.Instance.EnableInGameUI = false;
+                    UIController.Instance.ShowLose(true);
+                }
                 break;
             default:
                 break;
@@ -229,7 +236,7 @@ public class PlayerAgent : NetworkBehaviour
             return;
 
         playerController.StartControl(this, manualAttack);
-        
+
         UIController.Instance.EnableBuildingPanel = true;
         UIController.Instance.RemainingTime = 1.0f;
     }
@@ -248,7 +255,7 @@ public class PlayerAgent : NetworkBehaviour
     {
         if (!isLocalPlayer)
             return;
-        
+
         playerController.EndControl();
         UIController.Instance.EnableBuildingPanel = false;
     }
