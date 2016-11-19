@@ -10,6 +10,8 @@ public class UIController : MonoBehaviour
     public GameObject inGamePanel;
 
     public Text resText;
+    public Text prodText;
+    public Text costText;
     public GameObject buildPanel;
     public ProgressBar progressBar;
 
