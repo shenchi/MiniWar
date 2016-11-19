@@ -8,6 +8,7 @@ public class TowerInfo : NetworkBehaviour
 
     [SyncVar]
     public int health;
+    public Vector2 healthGP;
 
     public int level;
     public int vision;
