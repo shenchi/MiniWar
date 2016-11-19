@@ -14,15 +14,33 @@ public class AutoAttackPhase : Phase
 
         foreach (var a in allAttackers)
         {
+            int targetNumbers = 0;
+
             var range = RangeUtils.GetRangeOfTower(a, vision);
+
+            float addedDamage = 1.0f / RangeUtils.maxTargetCount(a.range) * RangeUtils.maxTargetCount(a.range) - RangeUtils.maxTargetCount(a.range);
+
             foreach (var t in allTowers)
             {
                 if (t.playerSlotId == CurrentPlayer.SlotId)
                     continue;
 
-                if (range.Contains(t.coord))
+                if (range.Contains(t.coord)) //Auto attack towers
                 {
-                    t.health--;
+                    targetNumbers ++;
+                }
+            }
+
+            float currentDamage = 1.0f / targetNumbers + addedDamage;
+
+            foreach (var t in allTowers)
+            {
+                if (t.playerSlotId == CurrentPlayer.SlotId)
+                    continue;
+
+                if (range.Contains(t.coord)) //Auto attack towers
+                {
+                    t.healthGP -= currentDamage;
                 }
             }
         }

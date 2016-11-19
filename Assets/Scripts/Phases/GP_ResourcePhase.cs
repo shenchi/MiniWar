@@ -1,15 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class GP_ResourcePhase : MonoBehaviour {
+public class GP_ResourcePhase : Phase
+{
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    public override void OnEnter()
+    {
+        base.OnEnter();
+
+        var hexes = TowerManager.Instance.GetHexagonsInRange(CurrentPlayer, TowerType.ResourceTower);
+        var vision = RangeUtils.GetPlayerVisionServer(CurrentPlayer);
+        hexes.IntersectWith(vision);
+        TowerManager.Instance.RemoveHexagonsOccupied(hexes);
+        CurrentPlayer.AddResource(hexes.Count);
+    }
 }

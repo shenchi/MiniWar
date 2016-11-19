@@ -6,6 +6,8 @@ public class PlayerActingPhase : Phase
     public bool manualAttack = false;
     private float remainingTime = 0.0f;
 
+    public float minAttackDamage;
+
     public override void OnEnter()
     {
         base.OnEnter();

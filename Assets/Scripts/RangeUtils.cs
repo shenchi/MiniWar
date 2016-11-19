@@ -37,4 +37,11 @@ public class RangeUtils
         vision.UnionWith(player.CampVision);
         return vision;
     }
+
+    public static int maxTargetCount(int range)
+    {
+        int count;
+        count = ((1 + range) * range / 2) * 6;
+        return count;
+    }
 }

@@ -1,15 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class GP_InitializePhase : MonoBehaviour {
+public class GP_InitializePhase : Phase
+{
+    public override void OnEnter()
+    {
+        base.OnEnter();
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+        var allPlayers = GamePlay.Instance.GetAllPlayers();
+        foreach (var player in allPlayers)
+        {
+            TowerManager.Instance.BuildTower(player, player.PlayerInfo.camp);
+        }
+    }
 }

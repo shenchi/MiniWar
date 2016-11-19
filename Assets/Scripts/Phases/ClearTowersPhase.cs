@@ -13,13 +13,13 @@ public class ClearTowersPhase : Phase
 
         foreach (var t in allTowers)
         {
-            if(t.health <= 0)
+            if(t.health <= 0) //If health less/equal than 0 the add to destroy list
             {
                 deleteList.Add(t);
             }
         }
 
-        for (int i = 0; i < deleteList.Count; i++)
+        for (int i = 0; i < deleteList.Count; i++) //Destroy towers in the destroy list
         {
             TowerManager.Instance.DestroyTower(deleteList[i]);
         }
