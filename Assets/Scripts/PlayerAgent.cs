@@ -49,6 +49,10 @@ public class PlayerAgent : NetworkBehaviour
 
     public int Resource { get { return playerInfo.resource; } }
 
+    public int Production { get { return playerInfo.production; } }
+
+    public int Cost { get { return playerInfo.cost; } }
+
     #region Server
 
     [Command]
@@ -87,6 +91,20 @@ public class PlayerAgent : NetworkBehaviour
     {
         var temp = playerInfo;
         temp.resource += res;
+        playerInfo = temp;
+    }
+
+    public void SetProduction(int prod)
+    {
+        var temp = playerInfo;
+        temp.production = prod;
+        playerInfo = temp;
+    }
+    
+    public void SetCost(int cost)
+    {
+        var temp = playerInfo;
+        temp.cost = cost;
         playerInfo = temp;
     }
 
@@ -154,6 +172,8 @@ public class PlayerAgent : NetworkBehaviour
         if (isLocalPlayer)
         {
             UIController.Instance.SetResource(playerInfo.resource);
+            UIController.Instance.SetProduction(playerInfo.production);
+            UIController.Instance.SetCost(playerInfo.cost);
         }
     }
 

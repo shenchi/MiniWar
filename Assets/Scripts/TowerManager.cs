@@ -123,6 +123,7 @@ public class TowerManager : NetworkBehaviour
         tower.playerSlotId = player.SlotId;
 
         player.AddResource(-price);
+        UpdateProdAndCost(player.SlotId);
 
         return tower;
     }
@@ -138,6 +139,26 @@ public class TowerManager : NetworkBehaviour
         playerTowers[t.playerSlotId].Remove(t);
 
         NetworkServer.Destroy(t.gameObject);
+
+        UpdateProdAndCost(t.playerSlotId);
+    }
+
+    private void UpdateProdAndCost(int playerSlotId)
+    {
+        var player = GamePlay.Instance.FindPlayerAgentBySlotId(playerSlotId);
+        var hexes = GetHexagonsInRange(playerSlotId, TowerType.ResourceTower);
+        var vision = RangeUtils.GetPlayerVisionServer(player);
+        hexes.IntersectWith(vision);
+        RemoveHexagonsOccupied(hexes);
+
+        player.SetProduction(hexes.Count);
+
+        int res =
+            SumAttribute(player, TowerType.ResourceTower, x => { return x.cost; }) +
+            SumAttribute(player, TowerType.VisionTower, x => { return x.cost; }) +
+            SumAttribute(player, TowerType.AttackTower, x => { return x.cost; });
+
+        player.SetCost(res);
     }
 
     public List<TowerInfo> GetTowersOfType(int playerSlotId, TowerType type)

@@ -8,10 +8,6 @@ public class ResourcePhase : Phase
     {
         base.OnEnter();
         
-        var hexes = TowerManager.Instance.GetHexagonsInRange(CurrentPlayer, TowerType.ResourceTower);
-        var vision = RangeUtils.GetPlayerVisionServer(CurrentPlayer);
-        hexes.IntersectWith(vision);
-        TowerManager.Instance.RemoveHexagonsOccupied(hexes);
-        CurrentPlayer.AddResource(hexes.Count);
+        CurrentPlayer.AddResource(CurrentPlayer.Production);
     }
 }

@@ -85,6 +85,16 @@ public class UIController : MonoBehaviour
     {
         resText.text = res.ToString();
     }
+
+    public void SetProduction(int prod)
+    {
+        prodText.text = prod.ToString();
+    }
+
+    public void SetCost(int cost)
+    {
+        costText.text = cost.ToString();
+    }
     
     public void SetBuildButtonText(int index, string text)
     {
