@@ -85,7 +85,10 @@ public class GamePlay : NetworkBehaviour
 
     public void SetConstant<T>(ConstantName constantName, T value)
     {
-        constants.Add(constantName, value);
+        if (!constants.ContainsKey(constantName))
+            constants.Add(constantName, value);
+        else
+            constants[constantName] = value;
     }
 
     public T GetConstant<T>(ConstantName constantName, T defaultValue)
