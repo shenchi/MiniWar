@@ -15,6 +15,8 @@ public class UIController : MonoBehaviour
     public GameObject buildPanel;
     public ProgressBar progressBar;
 
+    public Text logText;
+
     public Text winText;
     public Text loseText;
     public Text noticeText;
@@ -95,7 +97,7 @@ public class UIController : MonoBehaviour
     {
         costText.text = cost.ToString();
     }
-    
+
     public void SetBuildButtonText(int index, string text)
     {
         buildButtonList[index].GetComponentInChildren<Text>().text = text;
@@ -109,7 +111,7 @@ public class UIController : MonoBehaviour
             SetBuildButtonText(i, text[i]);
         }
     }
-    
+
     public void RegisterButtonAction(string type, Action<string> action)
     {
         if (!buttonActions.ContainsKey(type))
@@ -127,5 +129,20 @@ public class UIController : MonoBehaviour
     {
         if (buttonActions.ContainsKey(type))
             buttonActions[type](type);
+    }
+
+    public void AddLog(string txt)
+    {
+        logText.text += "\n" + txt;
+
+        float height = LayoutUtility.GetPreferredHeight(logText.rectTransform);
+        float areaHeight = logText.rectTransform.rect.height;
+
+        while (height > areaHeight)
+        {
+            logText.text = logText.text.Remove(0, logText.text.IndexOf('\n') + 1);
+
+            height = LayoutUtility.GetPreferredHeight(logText.rectTransform);
+        }
     }
 }
