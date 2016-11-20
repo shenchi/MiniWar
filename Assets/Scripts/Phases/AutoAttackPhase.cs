@@ -18,7 +18,7 @@ public class AutoAttackPhase : Phase
 
             var range = RangeUtils.GetRangeOfTower(a, vision);
 
-            float addedDamage = 1.0f / RangeUtils.maxTargetCount(a.range) * RangeUtils.maxTargetCount(a.range) - RangeUtils.maxTargetCount(a.range);
+            float addedDamage = 0.5f / RangeUtils.maxTargetCount(a.range) * RangeUtils.maxTargetCount(a.range) - RangeUtils.maxTargetCount(a.range);
 
             foreach (var t in allTowers)
             {
