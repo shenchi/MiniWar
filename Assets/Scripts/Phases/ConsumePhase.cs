@@ -15,6 +15,6 @@ public class ConsumePhase : Phase
 
         CurrentPlayer.AddResource(-res);
 
-		UIController.Instance.AddLog ("Your recource is decreased by " + res + ".");
+		CurrentPlayer.RpcAddLog ("Your recource is decreased by " + res + ".");
     }
 }

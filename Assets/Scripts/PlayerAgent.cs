@@ -280,6 +280,10 @@ public class PlayerAgent : NetworkBehaviour
         UIController.Instance.EnableBuildingPanel = false;
     }
 
-
+    [ClientRpc]
+    public void RpcAddLog(string text)
+    {
+        UIController.Instance.AddLog(text);
+    }
     #endregion
 }

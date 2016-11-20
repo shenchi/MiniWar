@@ -86,7 +86,9 @@ public class TowerManager : NetworkBehaviour
 
         int price = towerList[index].price;
 
-        if (!playerTowers.ContainsKey(player.SlotId) && index == defaultTower)
+        bool isDefaultTower = !playerTowers.ContainsKey(player.SlotId) && index == defaultTower;
+
+        if (isDefaultTower)
         {
             price = 0;
         }
@@ -110,20 +112,23 @@ public class TowerManager : NetworkBehaviour
 
         var tower = Instantiate(towerList[index]);
         NetworkServer.Spawn(tower.gameObject);
-        
+
         if (!playerTowers.ContainsKey(player.SlotId))
             playerTowers.Add(player.SlotId, new List<TowerInfo>());
 
         playerTowers[player.SlotId].Add(tower);
 
         mapTowers.Add(coord, tower);
-        
+
         tower.labelColor = player.PlayerColor;
         tower.coord = coord;
         tower.playerSlotId = player.SlotId;
 
         player.AddResource(-price);
         UpdateProdAndCost(player.SlotId);
+
+        if (!isDefaultTower)
+            player.RpcAddLog("You built a " + tower.type.ToString() + ", resource decreased by " + price);
 
         return tower;
     }
@@ -206,7 +211,7 @@ public class TowerManager : NetworkBehaviour
     {
         return GetHexagonsInRange(player.SlotId, type, rangeFunc);
     }
-    
+
     public HashSet<HexCoord> GetHexagonsInRange(int playerSlotId, TowerType type)
     {
         return GetHexagonsInRange(playerSlotId, type, x => { return x.range; });
