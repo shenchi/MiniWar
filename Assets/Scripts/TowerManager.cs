@@ -125,7 +125,7 @@ public class TowerManager : NetworkBehaviour
         tower.playerSlotId = player.SlotId;
 
         player.AddResource(-price);
-        UpdateProdAndCost(player.SlotId);
+        UpdateAfterBuildingChanged(player.SlotId);
 
         if (!isDefaultTower)
             player.RpcAddLog("You built a " + tower.type.ToString() + ", resource decreased by " + price);
@@ -145,10 +145,10 @@ public class TowerManager : NetworkBehaviour
 
         NetworkServer.Destroy(t.gameObject);
 
-        UpdateProdAndCost(t.playerSlotId);
+        UpdateAfterBuildingChanged(t.playerSlotId);
     }
 
-    private void UpdateProdAndCost(int playerSlotId)
+    private void UpdateAfterBuildingChanged(int playerSlotId)
     {
         var player = GamePlay.Instance.FindPlayerAgentBySlotId(playerSlotId);
         var hexes = GetHexagonsInRange(playerSlotId, TowerType.ResourceTower);
@@ -164,6 +164,25 @@ public class TowerManager : NetworkBehaviour
             SumAttribute(player, TowerType.AttackTower, x => { return x.cost; });
 
         player.SetCost(res);
+
+        var towers = GetTowersOfPlayer(player);
+        for (int i = 0; i < towers.Count; ++i)
+        {
+            if (towers[i].state == TowerInfo.BuildingState.Working)
+            { 
+                if (!vision.Contains(towers[i].coord))
+                {
+                    towers[i].state = TowerInfo.BuildingState.OutOfVision;
+                }
+            }
+            else if (towers[i].state == TowerInfo.BuildingState.OutOfVision)
+            {
+                if (vision.Contains(towers[i].coord))
+                {
+                    towers[i].state = TowerInfo.BuildingState.Working;
+                }
+            }
+        }
     }
 
     public List<TowerInfo> GetTowersOfType(int playerSlotId, TowerType type)

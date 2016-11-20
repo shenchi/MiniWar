@@ -283,6 +283,9 @@ public class PlayerAgent : NetworkBehaviour
     [ClientRpc]
     public void RpcAddLog(string text)
     {
+        if (!isLocalPlayer)
+            return;
+
         UIController.Instance.AddLog(text);
     }
     #endregion

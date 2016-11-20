@@ -94,7 +94,8 @@ public class PlayerController : NetworkBehaviour
                             if (Physics.Raycast(ray, out hitInfo, float.MaxValue, towerMask))
                             {
                                 var t = hitInfo.collider.GetComponent<TowerInfo>();
-                                if (null != t && t.playerSlotId == CurrentPlayer.SlotId && t.type == TowerType.AttackTower)
+                                if (null != t && t.playerSlotId == CurrentPlayer.SlotId && 
+                                    t.type == TowerType.AttackTower && t.state == TowerInfo.BuildingState.Working)
                                 {
                                     attackerTower = t;
                                     attackerCoord = t.coord;
@@ -224,7 +225,7 @@ public class PlayerController : NetworkBehaviour
     void CmdTryAttackTower(int playerSlot, HexCoord attackerCoord, HexCoord attackeeCoord)
     {
         var attacker = TowerManager.Instance.FindTowerByCoord(attackerCoord);
-        if (attacker == null || attacker.type != TowerType.AttackTower || attacker.playerSlotId != playerSlot)
+        if (attacker == null || attacker.type != TowerType.AttackTower || attacker.playerSlotId != playerSlot || attacker.state != TowerInfo.BuildingState.Working)
             return;
 
         var attackee = TowerManager.Instance.FindTowerByCoord(attackeeCoord);

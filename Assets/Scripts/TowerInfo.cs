@@ -16,6 +16,16 @@ public class TowerInfo : NetworkBehaviour
     public int price;
     public int cost;
 
+    public enum BuildingState
+    {
+        Building,
+        Working,
+        OutOfVision
+    }
+
+    [SyncVar]
+    public BuildingState state = BuildingState.Building;
+
     [SyncVar(hook = "OnLabelColorChanged")]
     public Color labelColor;
 
