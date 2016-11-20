@@ -9,5 +9,6 @@ public class ResourcePhase : Phase
         base.OnEnter();
         
         CurrentPlayer.AddResource(CurrentPlayer.Production);
+		UIController.Instance.AddLog ("Your resource is increased by " + CurrentPlayer.Production + ".");
     }
 }

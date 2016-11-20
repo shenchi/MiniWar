@@ -14,5 +14,7 @@ public class ConsumePhase : Phase
             TowerManager.Instance.SumAttribute(CurrentPlayer, TowerType.AttackTower, x => { return x.cost; });
 
         CurrentPlayer.AddResource(-res);
+
+		UIController.Instance.AddLog ("Your recource is decreased by " + res + ".");
     }
 }
