@@ -11,6 +11,8 @@ public class CullByVision : MonoBehaviour
     void Start()
     {
         renderer = GetComponent<Renderer>();
+        coord = HexagonUtils.Pos2Coord(transform.position);
+        lastPosition = transform.position;
     }
 
     void Update()

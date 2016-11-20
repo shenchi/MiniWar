@@ -8,7 +8,8 @@ public class TowerInfo : NetworkBehaviour
 
     [SyncVar]
     public int health;
-    public float healthGP;
+
+    public TextMesh healthTagGP;
 
     public int level;
     public int vision;
@@ -37,6 +38,15 @@ public class TowerInfo : NetworkBehaviour
 
     [SyncVar(hook = "OnSlotIdChanged")]
     public int playerSlotId = -1;
+
+    [SyncVar(hook = "OnHealthGPChanged")]
+    public float healthGP;
+
+    private void OnHealthGPChanged(float changedHealth)
+    {
+        healthGP = changedHealth;
+        healthTagGP.text = changedHealth.ToString();
+    }
 
     private void OnLabelColorChanged(Color value)
     {
