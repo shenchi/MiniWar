@@ -3,6 +3,7 @@ using System.Collections;
 
 public class PlayerActingPhase : Phase
 {
+    public bool foreachPlayer = false;
     public bool manualAttack = false;
     public int attackCost = 0;
     private float remainingTime = 0.0f;
@@ -13,8 +14,21 @@ public class PlayerActingPhase : Phase
     {
         base.OnEnter();
 
-        GamePlay.Instance.SetConstant<int>(GamePlay.ConstantName.AttackCost, attackCost);
-        CurrentPlayer.RpcStartOperationMode(manualAttack, attackCost);
+        if (manualAttack)
+            GamePlay.Instance.SetConstant<int>(GamePlay.ConstantName.AttackCost, attackCost);
+
+        if (foreachPlayer)
+        {
+            var players = GamePlay.Instance.GetAllPlayers();
+            for (int i = 0; i < players.Count; i++)
+            {
+                players[i].RpcStartOperationMode(manualAttack, attackCost, foreachPlayer);
+            }
+        }
+        else
+        {
+            CurrentPlayer.RpcStartOperationMode(manualAttack, attackCost, foreachPlayer);
+        }
         remainingTime = timeLimit;
     }
 
@@ -24,13 +38,36 @@ public class PlayerActingPhase : Phase
 
         remainingTime -= Time.deltaTime;
 
-        CurrentPlayer.RpcSetOperationModeRemainingTime(Mathf.Clamp01(remainingTime / timeLimit));
+        if (foreachPlayer)
+        {
+            var players = GamePlay.Instance.GetAllPlayers();
+            for (int i = 0; i < players.Count; i++)
+            {
+                players[i].RpcSetOperationModeRemainingTime(Mathf.Clamp01(remainingTime / timeLimit));
+            }
+        }
+        else
+        {
+            CurrentPlayer.RpcSetOperationModeRemainingTime(Mathf.Clamp01(remainingTime / timeLimit));
+        }
     }
 
     public override void OnExit()
     {
         base.OnExit();
 
-        CurrentPlayer.RpcEndOperationMode();
+
+        if (foreachPlayer)
+        {
+            var players = GamePlay.Instance.GetAllPlayers();
+            for (int i = 0; i < players.Count; i++)
+            {
+                players[i].RpcEndOperationMode();
+            }
+        }
+        else
+        {
+            CurrentPlayer.RpcEndOperationMode();
+        }
     }
 }

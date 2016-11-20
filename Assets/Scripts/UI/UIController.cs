@@ -24,6 +24,8 @@ public class UIController : MonoBehaviour
     public Button[] buildButtonList;
     private Dictionary<string, Action<string>> buttonActions = new Dictionary<string, Action<string>>();
 
+    public Button doneButton;
+
     public bool EnableInGameUI
     {
         get
@@ -57,6 +59,18 @@ public class UIController : MonoBehaviour
         set
         {
             progressBar.Value = value;
+        }
+    }
+
+    public bool EnableDoneButton
+    {
+        get
+        {
+            return doneButton.gameObject.activeSelf;
+        }
+        set
+        {
+            doneButton.gameObject.SetActive(value);
         }
     }
 

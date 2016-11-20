@@ -45,7 +45,7 @@ public class TowerInfo : NetworkBehaviour
     private void OnHealthGPChanged(float changedHealth)
     {
         healthGP = changedHealth;
-        healthTagGP.text = changedHealth.ToString();
+        healthTagGP.text = changedHealth.ToString("F");
     }
 
     private void OnLabelColorChanged(Color value)

@@ -250,7 +250,7 @@ public class PlayerAgent : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcStartOperationMode(bool manualAttack, int attackCost)
+    public void RpcStartOperationMode(bool manualAttack, int attackCost, bool foreachPlayer)
     {
         if (!isLocalPlayer)
             return;
@@ -259,6 +259,8 @@ public class PlayerAgent : NetworkBehaviour
 
         UIController.Instance.EnableBuildingPanel = true;
         UIController.Instance.RemainingTime = 1.0f;
+
+        UIController.Instance.EnableDoneButton = (!foreachPlayer);
     }
 
     [ClientRpc]

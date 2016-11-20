@@ -14,11 +14,16 @@ public class AutoAttackPhase : Phase
 
         foreach (var a in allAttackers)
         {
+            if (a.state != TowerInfo.BuildingState.Working)
+                continue;
+
             int targetNumbers = 0;
 
             var range = RangeUtils.GetRangeOfTower(a, vision);
 
-            float addedDamage = 0.5f / RangeUtils.maxTargetCount(a.range) * RangeUtils.maxTargetCount(a.range) - RangeUtils.maxTargetCount(a.range);
+            int m = RangeUtils.maxTargetCount(a.range);
+
+            float addedDamage = 0.5f / (m * m - m);
 
             foreach (var t in allTowers)
             {
