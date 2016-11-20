@@ -4,6 +4,7 @@ using System.Collections;
 public class PlayerActingPhase : Phase
 {
     public bool manualAttack = false;
+    public int attackCost = 0;
     private float remainingTime = 0.0f;
 
     public float minAttackDamage;
@@ -12,7 +13,8 @@ public class PlayerActingPhase : Phase
     {
         base.OnEnter();
 
-        CurrentPlayer.RpcStartOperationMode(manualAttack);
+        GamePlay.Instance.SetConstant<float>(GamePlay.ConstantName.AttackCost, attackCost);
+        CurrentPlayer.RpcStartOperationMode(manualAttack, attackCost);
         remainingTime = timeLimit;
     }
 

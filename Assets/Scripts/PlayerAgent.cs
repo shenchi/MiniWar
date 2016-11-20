@@ -250,12 +250,12 @@ public class PlayerAgent : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcStartOperationMode(bool manualAttack)
+    public void RpcStartOperationMode(bool manualAttack, int attackCost)
     {
         if (!isLocalPlayer)
             return;
 
-        playerController.StartControl(this, manualAttack);
+        playerController.StartControl(this, manualAttack, attackCost);
 
         UIController.Instance.EnableBuildingPanel = true;
         UIController.Instance.RemainingTime = 1.0f;

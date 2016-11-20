@@ -26,6 +26,8 @@ public class PlayerController : NetworkBehaviour
 
     public bool ManualAttackEnabled { get; private set; }
 
+    public int AttackCost { get; private set; }
+
     private int buildingTowerIndex;
 
     private TowerInfo attackerTower;
@@ -46,11 +48,12 @@ public class PlayerController : NetworkBehaviour
         EndControl();
     }
 
-    public void StartControl(PlayerAgent player, bool manualAttack)
+    public void StartControl(PlayerAgent player, bool manualAttack, int attackCost)
     {
         cam = FindObjectOfType<Camera>();
         CurrentPlayer = player;
         ManualAttackEnabled = manualAttack;
+        AttackCost = attackCost;
     }
 
     public void EndControl()
@@ -85,7 +88,7 @@ public class PlayerController : NetworkBehaviour
             {
                 case State.Idle:
                     {
-                        if (ManualAttackEnabled)
+                        if (ManualAttackEnabled && CurrentPlayer.Resource >= AttackCost)
                         {
                             RaycastHit hitInfo;
                             if (Physics.Raycast(ray, out hitInfo, float.MaxValue, towerMask))
@@ -228,6 +231,11 @@ public class PlayerController : NetworkBehaviour
         if (attackee == null || attackee.playerSlotId == playerSlot)
             return;
 
+        var attackerPlayer = GamePlay.Instance.FindPlayerAgentBySlotId(attacker.playerSlotId);
+        int attackCost = GamePlay.Instance.GetConstant<int>(GamePlay.ConstantName.AttackCost, 0);
+        if (attackerPlayer.Resource < attackCost)
+            return;
+
         var vision = TowerManager.Instance.GetHexagonsInVision(playerSlot);
         var range = RangeUtils.GetRangeOfTower(attacker, vision);
 
@@ -238,6 +246,8 @@ public class PlayerController : NetworkBehaviour
             {
                 TowerManager.Instance.DestroyTower(attackee);
             }
+            attackerPlayer.AddResource(-attackCost);
+            attackerPlayer.RpcAddLog("You attacked an enemy's building, resource is decreased by " + attackCost);
             RpcAttackSuccess(attackerCoord);
         }
     }

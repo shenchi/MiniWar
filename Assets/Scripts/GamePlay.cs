@@ -75,6 +75,28 @@ public class GamePlay : NetworkBehaviour
 
     private bool finishCurrentPhase = false;
 
+    public enum ConstantName
+    {
+        AttackCost = 0,
+        ConstantCount
+    }
+
+    private Dictionary<ConstantName, object> constants = new Dictionary<ConstantName, object>();
+
+    public void SetConstant<T>(ConstantName constantName, T value)
+    {
+        constants.Add(constantName, value);
+    }
+
+    public T GetConstant<T>(ConstantName constantName, T defaultValue)
+    {
+        if (constants.ContainsKey(constantName))
+        {
+            return (T)constants[constantName];
+        }
+        return defaultValue;
+    }
+
     public void InitPlayerList()
     {
         playerList = new List<int>();
