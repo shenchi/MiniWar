@@ -13,7 +13,7 @@ public class PlayerActingPhase : Phase
     {
         base.OnEnter();
 
-        GamePlay.Instance.SetConstant<float>(GamePlay.ConstantName.AttackCost, attackCost);
+        GamePlay.Instance.SetConstant<int>(GamePlay.ConstantName.AttackCost, attackCost);
         CurrentPlayer.RpcStartOperationMode(manualAttack, attackCost);
         remainingTime = timeLimit;
     }
