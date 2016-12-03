@@ -174,6 +174,12 @@ public class PlayerAgent : NetworkBehaviour
             UIController.Instance.SetResource(playerInfo.resource);
             UIController.Instance.SetProduction(playerInfo.production);
             UIController.Instance.SetCost(playerInfo.cost);
+
+            var towerTemplates = TowerManager.Instance.towerList;
+            for (int i = 0; i < towerTemplates.Length; i++)
+            {
+                UIController.Instance.SetBuildButtonEnable(i, towerTemplates[i].price <= playerInfo.resource);
+            }
         }
     }
 

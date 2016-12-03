@@ -126,6 +126,11 @@ public class UIController : MonoBehaviour
         }
     }
 
+    public void SetBuildButtonEnable(int index, bool enable)
+    {
+        buildButtonList[index].interactable = enable;
+    }
+
     public void RegisterButtonAction(string type, Action<string> action)
     {
         if (!buttonActions.ContainsKey(type))
