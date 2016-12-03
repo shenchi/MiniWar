@@ -8,6 +8,8 @@ public class TowerInfo : NetworkBehaviour
 
     [SyncVar]
     public int health;
+    [SyncVar]
+    public bool attacked = false;
 
     public TextMesh healthTagGP;
 

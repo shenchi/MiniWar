@@ -95,7 +95,7 @@ public class PlayerController : NetworkBehaviour
                             {
                                 var t = hitInfo.collider.GetComponent<TowerInfo>();
                                 if (null != t && t.playerSlotId == CurrentPlayer.SlotId && 
-                                    t.type == TowerType.AttackTower && t.state == TowerInfo.BuildingState.Working)
+                                    t.type == TowerType.AttackTower && t.state == TowerInfo.BuildingState.Working && t.attacked == false)
                                 {
                                     attackerTower = t;
                                     attackerCoord = t.coord;
@@ -225,7 +225,7 @@ public class PlayerController : NetworkBehaviour
     void CmdTryAttackTower(int playerSlot, HexCoord attackerCoord, HexCoord attackeeCoord)
     {
         var attacker = TowerManager.Instance.FindTowerByCoord(attackerCoord);
-        if (attacker == null || attacker.type != TowerType.AttackTower || attacker.playerSlotId != playerSlot || attacker.state != TowerInfo.BuildingState.Working)
+        if (attacker == null || attacker.type != TowerType.AttackTower || attacker.playerSlotId != playerSlot || attacker.state != TowerInfo.BuildingState.Working || attacker.attacked)
             return;
 
         var attackee = TowerManager.Instance.FindTowerByCoord(attackeeCoord);
@@ -248,6 +248,9 @@ public class PlayerController : NetworkBehaviour
                 TowerManager.Instance.DestroyTower(attackee);
             }
             attackerPlayer.AddResource(-attackCost);
+
+            attacker.attacked = true;
+
             attackerPlayer.RpcAddLog("You attacked an enemy's building, resource is decreased by " + attackCost);
             RpcAttackSuccess(attackerCoord);
         }

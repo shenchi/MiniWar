@@ -12,7 +12,8 @@ public class RoomBroadcaster : NetworkDiscovery
     public override void OnReceivedBroadcast(string fromAddress, string data)
     {
         base.OnReceivedBroadcast(fromAddress, data);
-        OnBroadcast(fromAddress, data);
+        if (OnBroadcast != null)
+            OnBroadcast(fromAddress, data);
     }
 
     private static string BytesToString(byte[] bytes)

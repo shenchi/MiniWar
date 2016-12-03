@@ -63,11 +63,23 @@ public class PlayerActingPhase : Phase
             for (int i = 0; i < players.Count; i++)
             {
                 players[i].RpcEndOperationMode();
+                ClearAttackFlags(players[i]);
             }
         }
         else
         {
             CurrentPlayer.RpcEndOperationMode();
+            ClearAttackFlags(CurrentPlayer);
+        }
+    }
+
+    private void ClearAttackFlags(PlayerAgent player)
+    {
+        var towers = TowerManager.Instance.GetTowersOfPlayer(player);
+        foreach (var tower in towers)
+        {
+            if (tower.type == TowerType.AttackTower)
+                tower.attacked = false;
         }
     }
 }
