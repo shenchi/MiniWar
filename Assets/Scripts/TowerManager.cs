@@ -151,12 +151,23 @@ public class TowerManager : NetworkBehaviour
     private void UpdateAfterBuildingChanged(int playerSlotId)
     {
         var player = GamePlay.Instance.FindPlayerAgentBySlotId(playerSlotId);
-        var hexes = GetHexagonsInRange(playerSlotId, TowerType.ResourceTower);
+        //var hexes = GetHexagonsInRange(playerSlotId, TowerType.ResourceTower);
+        
+        var towers = GetTowersOfPlayer(player);
         var vision = RangeUtils.GetPlayerVisionServer(player);
-        hexes.IntersectWith(vision);
-        RemoveHexagonsOccupied(hexes);
+        int prod = 0;
 
-        player.SetProduction(hexes.Count);
+        for (int i = 0; i < towers.Count; ++i)
+        {
+            if (towers[i].type != TowerType.ResourceTower)
+                continue;
+
+            var hexes = RangeUtils.GetRangeOfTower(towers[i], vision);
+            RemoveHexagonsOccupied(hexes);
+            prod += hexes.Count;
+        }
+
+        player.SetProduction(prod);
 
         int res =
             SumAttribute(player, TowerType.ResourceTower, x => { return x.cost; }) +
@@ -164,8 +175,7 @@ public class TowerManager : NetworkBehaviour
             SumAttribute(player, TowerType.AttackTower, x => { return x.cost; });
 
         player.SetCost(res);
-
-        var towers = GetTowersOfPlayer(player);
+            
         for (int i = 0; i < towers.Count; ++i)
         {
             if (towers[i].state == TowerInfo.BuildingState.Working)
