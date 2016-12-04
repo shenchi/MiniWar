@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEngine.Networking;
 using System.Collections.Generic;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 public class PlayerController : NetworkBehaviour
 {
@@ -30,9 +32,9 @@ public class PlayerController : NetworkBehaviour
 
     private int buildingTowerIndex;
 
-    private TowerInfo attackerTower;
-    private HexCoord attackerCoord;
-    private HashSet<HexCoord> attackerRange;
+    private TowerInfo selectedTower;
+    private HexCoord towerCoord;
+    private HashSet<HexCoord> towerRange;
 
     private int terrainMask;
     private int towerMask;
@@ -80,30 +82,41 @@ public class PlayerController : NetworkBehaviour
     {
         if (null == CurrentPlayer)
             return;
-
-        if (Input.GetMouseButtonDown(0))
+        
+        if (Input.GetMouseButtonDown(0) && FindObjectOfType<EventSystem>().currentSelectedGameObject == null)
         {
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
             switch (state)
             {
                 case State.Idle:
                     {
-                        if (ManualAttackEnabled && CurrentPlayer.Resource >= AttackCost)
+                        selectedTower = null;
+
+                        RaycastHit hitInfo;
+                        if (Physics.Raycast(ray, out hitInfo, float.MaxValue, towerMask))
                         {
-                            RaycastHit hitInfo;
-                            if (Physics.Raycast(ray, out hitInfo, float.MaxValue, towerMask))
+                            var t = hitInfo.collider.GetComponent<TowerInfo>();
+                            if (null != t && t.playerSlotId == CurrentPlayer.SlotId)
                             {
-                                var t = hitInfo.collider.GetComponent<TowerInfo>();
-                                if (null != t && t.playerSlotId == CurrentPlayer.SlotId && 
-                                    t.type == TowerType.AttackTower && t.state == TowerInfo.BuildingState.Working && t.attacked == false)
+                                selectedTower = t;
+                                towerCoord = t.coord;
+                                towerRange = RangeUtils.GetRangeOfTowerForLocalPlayerClient(t);
+                                if (t.type == TowerType.AttackTower)
                                 {
-                                    attackerTower = t;
-                                    attackerCoord = t.coord;
-                                    attackerRange = RangeUtils.GetRangeOfTowerForLocalPlayerClient(t);
-                                    SwitchTo(State.SelectAttactTarget);
+                                    UIController.Instance.ShowActionPanel(hitInfo.point, new string[] { "A", "X" }, new UnityAction[] { SelectAttackee, DestroyTower });
+                                }
+                                else
+                                {
+                                    UIController.Instance.ShowActionPanel(hitInfo.point, new string[] { "X" }, new UnityAction[] { DestroyTower });
                                 }
                             }
                         }
+
+                        if (null == selectedTower)
+                        {
+                            UIController.Instance.HideActionPanel();
+                        }
+
                     }
                     break;
                 case State.SelectBuildingCoord:
@@ -129,8 +142,8 @@ public class PlayerController : NetworkBehaviour
                                 var t = hitInfo.collider.GetComponent<TowerInfo>();
                                 if (null != t && t.playerSlotId != CurrentPlayer.SlotId)
                                 {
-                                    if (attackerCoord != HexCoord.Invalid && attackerRange.Contains(t.coord))
-                                        CmdTryAttackTower(CurrentPlayer.SlotId, attackerCoord, t.coord);
+                                    if (towerCoord != HexCoord.Invalid && towerRange.Contains(t.coord))
+                                        CmdTryAttackTower(CurrentPlayer.SlotId, towerCoord, t.coord);
                                 }
                             }
                         }
@@ -146,6 +159,25 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    void SelectAttackee()
+    {
+        if (null == selectedTower)
+            return;
+
+        if (selectedTower.type == TowerType.AttackTower && selectedTower.state == TowerInfo.BuildingState.Working && selectedTower.attacked == false)
+        {
+            SwitchTo(State.SelectAttactTarget);
+        }
+
+        UIController.Instance.HideActionPanel();
+    }
+
+    void DestroyTower()
+    {
+        CmdTryDestroyTower(CurrentPlayer.SlotId, towerCoord);
+        UIController.Instance.HideActionPanel();
+    }
+
     void SwitchTo(State newState)
     {
         if (newState == state)
@@ -159,12 +191,12 @@ public class PlayerController : NetworkBehaviour
                 break;
             case State.SelectAttactTarget:
                 {
-                    attackerTower.GetComponent<RangeIndicator>().enabled = false;
-                    attackerTower.GetComponent<RangeIndicator>().RestoreMaterial();
-                    attackerTower.GetComponent<TowerHover>().enabled = true;
-                    attackerTower = null;
-                    attackerCoord = HexCoord.Invalid;
-                    attackerRange = null;
+                    selectedTower.GetComponent<RangeIndicator>().enabled = false;
+                    selectedTower.GetComponent<RangeIndicator>().RestoreMaterial();
+                    selectedTower.GetComponent<TowerHover>().enabled = true;
+                    selectedTower = null;
+                    towerCoord = HexCoord.Invalid;
+                    towerRange = null;
                 }
                 break;
             default:
@@ -178,11 +210,11 @@ public class PlayerController : NetworkBehaviour
         {
             case State.SelectAttactTarget:
                 {
-                    if (null != attackerTower)
+                    if (null != selectedTower)
                     {
-                        attackerTower.GetComponent<TowerHover>().enabled = false;
-                        attackerTower.GetComponent<RangeIndicator>().TintColor = new Color(1.0f, 0.0f, 0.0f, 0.5f);
-                        attackerTower.GetComponent<RangeIndicator>().enabled = true;
+                        selectedTower.GetComponent<TowerHover>().enabled = false;
+                        selectedTower.GetComponent<RangeIndicator>().TintColor = new Color(1.0f, 0.0f, 0.0f, 0.5f);
+                        selectedTower.GetComponent<RangeIndicator>().enabled = true;
                     }
                 }
                 break;
@@ -202,8 +234,14 @@ public class PlayerController : NetworkBehaviour
     [ClientRpc]
     void RpcAttackSuccess(HexCoord attackerCoord)
     {
-        if (state == State.SelectAttactTarget && this.attackerCoord == attackerCoord)
+        if (state == State.SelectAttactTarget && this.towerCoord == attackerCoord)
             SwitchTo(State.Idle);
+    }
+
+    [ClientRpc]
+    void RpcDestroySuccess()
+    {
+
     }
     #endregion
 
@@ -254,6 +292,17 @@ public class PlayerController : NetworkBehaviour
             attackerPlayer.RpcAddLog("You attacked an enemy's building, resource is decreased by " + attackCost);
             RpcAttackSuccess(attackerCoord);
         }
+    }
+
+    [Command]
+    void CmdTryDestroyTower(int playerSlot, HexCoord coord)
+    {
+        var tower = TowerManager.Instance.FindTowerByCoord(coord);
+        if (null == tower || tower.playerSlotId != playerSlot)
+            return;
+
+        TowerManager.Instance.DestroyTower(tower);
+        RpcDestroySuccess();
     }
     #endregion
 }

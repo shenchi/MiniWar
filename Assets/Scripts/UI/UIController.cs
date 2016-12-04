@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
@@ -14,6 +15,7 @@ public class UIController : MonoBehaviour
     public Text costText;
     public GameObject buildPanel;
     public ProgressBar progressBar;
+    public GameObject actionPanel;
 
     public Text logText;
 
@@ -163,5 +165,29 @@ public class UIController : MonoBehaviour
 
             height = LayoutUtility.GetPreferredHeight(logText.rectTransform);
         }
+    }
+
+    public void ShowActionPanel(Vector3 worldSpacePos, string[] titles, UnityAction[] actions)
+    {
+        Vector2 pos = RectTransformUtility.WorldToScreenPoint(Camera.main, worldSpacePos);
+        pos.y -= (actionPanel.transform.parent as RectTransform).rect.height;
+        print(pos);
+        (actionPanel.transform as RectTransform).anchoredPosition = new Vector2(pos.x, pos.y);
+        actionPanel.gameObject.SetActive(true);
+
+        actionPanel.GetComponent<UIList>().Clear();
+        UIList list = actionPanel.GetComponent<UIList>();
+        for (int i = 0; i < titles.Length; i++)
+        {
+            GameObject go = list.Add(null);
+            go.GetComponentInChildren<Text>().text = titles[i];
+            go.GetComponent<Button>().onClick.AddListener(actions[i]);
+        }
+    }
+
+    public void HideActionPanel()
+    {
+        actionPanel.GetComponent<UIList>().Clear();
+        actionPanel.gameObject.SetActive(false);
     }
 }
