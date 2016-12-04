@@ -70,6 +70,7 @@ public class PlayerController : NetworkBehaviour
 
     public void EndControl()
     {
+        UIController.Instance.HideActionPanel();
         SwitchTo(State.Idle);
         CurrentPlayer = null;
         ManualAttackEnabled = false;
@@ -112,6 +113,8 @@ public class PlayerController : NetworkBehaviour
             {
                 Destroy(h);
             }
+
+            ghostTower.layer = LayerMask.NameToLayer("Ghost");
 
             var renderers = ghostTower.GetComponentsInChildren<Renderer>();
             ghostTowerMat = new Material(ghostMat);
