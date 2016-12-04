@@ -9,6 +9,8 @@ public class PlayerController : NetworkBehaviour
 {
     #region Client
 
+    public Material ghostMat;
+
     private Camera cam;
 
     public PlayerAgent CurrentPlayer { get; private set; }
@@ -31,6 +33,14 @@ public class PlayerController : NetworkBehaviour
     public int AttackCost { get; private set; }
 
     private int buildingTowerIndex;
+
+
+    private GameObject ghostTower = null;
+    private int ghostTowerIndex = -1;
+    private Material ghostTowerMat = null;
+
+    public Color buildingAllowed;
+    public Color buildingForbiden;
 
     private TowerInfo selectedTower;
     private HexCoord towerCoord;
@@ -76,16 +86,56 @@ public class PlayerController : NetworkBehaviour
 
         buildingTowerIndex = towerIndex;
         SwitchTo(State.SelectBuildingCoord);
+
+        GetGhostTower(buildingTowerIndex);
+        ghostTowerMat.color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
+        ghostTower.SetActive(false);
     }
+
+    public GameObject GetGhostTower(int towerIndex)
+    {
+        if (null == ghostTower || ghostTowerIndex != towerIndex)
+        {
+            if (null != ghostTower)
+            {
+                Destroy(ghostTower);
+            }
+
+            ghostTower = Instantiate(TowerManager.Instance.towerList[(int)towerIndex]).gameObject;
+            var culler = ghostTower.GetComponentsInChildren<CullByVision>();
+            foreach (var c in culler)
+            {
+                Destroy(c);
+            }
+            var hover = ghostTower.GetComponentsInChildren<TowerHover>();
+            foreach (var h in hover)
+            {
+                Destroy(h);
+            }
+
+            var renderers = ghostTower.GetComponentsInChildren<Renderer>();
+            ghostTowerMat = new Material(ghostMat);
+
+            foreach (var r in renderers)
+            {
+                r.enabled = true;
+                r.sharedMaterial = ghostTowerMat;
+            }
+        }
+        return ghostTower;
+    }
+
+    private HexCoord lastHoveringCoord = HexCoord.Invalid;
 
     void Update()
     {
         if (null == CurrentPlayer)
             return;
-        
+
+        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+
         if (Input.GetMouseButtonDown(0) && FindObjectOfType<EventSystem>().currentSelectedGameObject == null)
         {
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
             switch (state)
             {
                 case State.Idle:
@@ -96,7 +146,7 @@ public class PlayerController : NetworkBehaviour
                         if (Physics.Raycast(ray, out hitInfo, float.MaxValue, towerMask))
                         {
                             var t = hitInfo.collider.GetComponent<TowerInfo>();
-                            if (null != t && t.playerSlotId == CurrentPlayer.SlotId)
+                            if (null != t && t.playerSlotId == CurrentPlayer.SlotId && VisionController.Instance.InVision(t.coord))
                             {
                                 selectedTower = t;
                                 towerCoord = t.coord;
@@ -157,6 +207,55 @@ public class PlayerController : NetworkBehaviour
         {
             SwitchTo(State.Idle);
         }
+        else
+        {
+            if (state == State.SelectBuildingCoord)
+            {
+                HexCoord coord = HexCoord.Invalid;
+
+                RaycastHit hitInfo;
+                if (Physics.Raycast(ray, out hitInfo, float.MaxValue, terrainMask))
+                {
+                    var h = hitInfo.collider.GetComponent<Hexagon>();
+
+                    if (null != h)
+                        coord = h.coord;
+                }
+
+                if (coord != lastHoveringCoord)
+                {
+                    if (coord != HexCoord.Invalid)
+                    {
+                        ghostTower.SetActive(true);
+                        ghostTowerMat.color = buildingAllowed;
+                        ghostTower.transform.position = MapManager.Instance.GetMountPosition(coord);
+
+                        if (!VisionController.Instance.InVision(coord))
+                        {
+                            ghostTowerMat.color = buildingForbiden;
+                        }
+                        else
+                        {
+                            var allTowers = FindObjectsOfType<TowerInfo>();
+                            for (int i = 0; i < allTowers.Length; ++i)
+                            {
+                                if (allTowers[i].coord == coord)
+                                {
+                                    ghostTowerMat.color = buildingForbiden;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ghostTower.SetActive(false);
+                    }
+
+                    lastHoveringCoord = coord;
+                }
+            }
+        }
     }
 
     void SelectAttackee()
@@ -208,12 +307,16 @@ public class PlayerController : NetworkBehaviour
         // enterting
         switch (state)
         {
+            case State.Idle:
+                if (null != ghostTower)
+                    Destroy(ghostTower);
+                break;
             case State.SelectAttactTarget:
                 {
                     if (null != selectedTower)
                     {
                         selectedTower.GetComponent<TowerHover>().enabled = false;
-                        selectedTower.GetComponent<RangeIndicator>().TintColor = new Color(1.0f, 0.0f, 0.0f, 0.5f);
+                        selectedTower.GetComponent<RangeIndicator>().TintColor = buildingForbiden;
                         selectedTower.GetComponent<RangeIndicator>().enabled = true;
                     }
                 }
