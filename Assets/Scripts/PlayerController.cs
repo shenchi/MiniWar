@@ -154,7 +154,7 @@ public class PlayerController : NetworkBehaviour
                                 selectedTower = t;
                                 towerCoord = t.coord;
                                 towerRange = RangeUtils.GetRangeOfTowerForLocalPlayerClient(t);
-                                if (t.type == TowerType.AttackTower)
+                                if (t.type == TowerType.AttackTower && t.attacked == false && ManualAttackEnabled)
                                 {
                                     UIController.Instance.ShowActionPanel(hitInfo.point, new string[] { "A", "X" }, new UnityAction[] { SelectAttackee, DestroyTower });
                                 }
