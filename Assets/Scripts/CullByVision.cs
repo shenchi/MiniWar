@@ -4,6 +4,7 @@ using System.Collections;
 [RequireComponent(typeof(Renderer))]
 public class CullByVision : MonoBehaviour
 {
+    public GameObject children = null;
     private HexCoord coord = new HexCoord();
     private Vector3 lastPosition = Vector3.zero;
     private Renderer renderer;
@@ -27,8 +28,17 @@ public class CullByVision : MonoBehaviour
     void LateUpdate()
     {
         if (!VisionController.Instance)
+        {
             renderer.enabled = false;
+            if (null != children)
+                children.SetActive(false);
+        }
         else
-            renderer.enabled = VisionController.Instance.InVision(coord);
+        {
+            bool inVision = VisionController.Instance.InVision(coord);
+            renderer.enabled = inVision;
+            if (null != children)
+                children.SetActive(inVision);
+        }
     }
 }
