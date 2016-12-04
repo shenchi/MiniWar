@@ -33,7 +33,7 @@ public class TowerInfo : NetworkBehaviour
     public Color labelColor;
 
     [SyncVar(hook = "OnCoordChanged")]
-    public HexCoord coord;
+    public HexCoord coord = HexCoord.Invalid;
 
     [SerializeField]
     private Renderer label;
