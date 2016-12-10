@@ -200,7 +200,7 @@ public class PlayerAgent : NetworkBehaviour
 
     void UpdateCampVision()
     {
-        campVision = HexagonUtils.NeighborHexagons(campCoord, 1);
+        campVision = HexagonUtils.NeighborHexagons(campCoord, 2);
         campVision.Add(campCoord);
         MapManager.Instance.RemoveHexagonsNotExists(campVision);
 
