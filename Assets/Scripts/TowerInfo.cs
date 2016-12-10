@@ -44,6 +44,8 @@ public class TowerInfo : NetworkBehaviour
     [SyncVar(hook = "OnHealthGPChanged")]
     public float healthGP;
 
+    public GameObject[] models;
+
     private void OnHealthGPChanged(float changedHealth)
     {
         healthGP = changedHealth;
@@ -52,8 +54,36 @@ public class TowerInfo : NetworkBehaviour
 
     private void OnLabelColorChanged(Color value)
     {
+        UpdateLabelColor(value);
+    }
+
+    public void UpdateLabelColor(Color value)
+    {
         labelColor = value;
-        label.material.color = value;
+        if (null != label)
+        {
+            label.material.color = value;
+        }
+
+        if (null != models && models.Length > 1)
+        {
+            int selected = 0;
+
+
+            if (value == Color.red)
+            {
+                selected = 0;
+            }
+            else
+            {
+                selected = 1;
+            }
+
+            for (int i = 0; i < models.Length; i++)
+            {
+                models[i].SetActive(i == selected);
+            }
+        }
     }
 
     private void OnCoordChanged(HexCoord coord)

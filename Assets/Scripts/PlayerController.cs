@@ -103,6 +103,9 @@ public class PlayerController : NetworkBehaviour
             }
 
             ghostTower = Instantiate(TowerManager.Instance.towerList[(int)towerIndex]).gameObject;
+            
+            ghostTower.GetComponent<TowerInfo>().UpdateLabelColor(CurrentPlayer.PlayerColor);
+
             var culler = ghostTower.GetComponentsInChildren<CullByVision>();
             foreach (var c in culler)
             {
@@ -115,14 +118,19 @@ public class PlayerController : NetworkBehaviour
             }
 
             ghostTower.layer = LayerMask.NameToLayer("Ghost");
-
+            
             var renderers = ghostTower.GetComponentsInChildren<Renderer>();
             ghostTowerMat = new Material(ghostMat);
 
             foreach (var r in renderers)
             {
                 r.enabled = true;
-                r.sharedMaterial = ghostTowerMat;
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    mats[i] = ghostTowerMat;
+                }
+                r.sharedMaterials = mats;
             }
         }
         return ghostTower;
