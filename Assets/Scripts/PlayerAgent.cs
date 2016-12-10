@@ -161,6 +161,7 @@ public class PlayerAgent : NetworkBehaviour
 
     void OnPlayerInfoUpdate(PlayerInfo value)
     {
+        bool campChanged = (playerInfo.camp != value.camp);
         playerInfo = value;
 
         if (campCoord != playerInfo.camp)
@@ -179,6 +180,20 @@ public class PlayerAgent : NetworkBehaviour
             for (int i = 0; i < towerTemplates.Length; i++)
             {
                 UIController.Instance.SetBuildButtonEnable(i, towerTemplates[i].price <= playerInfo.resource);
+            }
+
+            if (campChanged)
+            {
+                StartCoroutine(WaitForAndThen(
+                    delegate ()
+                    {
+                        return FindObjectOfType<CameraPanner>() != null;
+                    },
+                    delegate ()
+                    {
+                        FindObjectOfType<CameraPanner>().setCameraFocus(HexagonUtils.Coord2Pos(value.camp));
+                    }
+                    ));
             }
         }
     }

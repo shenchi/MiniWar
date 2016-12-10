@@ -53,8 +53,13 @@ public class CameraPanner : MonoBehaviour
         }
     }
 
-    void setCameraFocus(GameObject hex)
+    public void setCameraFocus(GameObject hex)
     {
-        transform.position = new Vector3 (hex.transform.position.x, transform.position.y, hex.transform.position.z - 5);
+        transform.position = new Vector3 (hex.transform.position.x, transform.position.y + 5, hex.transform.position.z - 5);
+    }
+
+    public void setCameraFocus(Vector3 pos)
+    {
+        transform.position = new Vector3(pos.x, pos.y + 5, pos.z - 5);
     }
 }
