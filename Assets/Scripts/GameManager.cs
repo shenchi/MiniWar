@@ -45,8 +45,15 @@ public class GameManager : NetworkLobbyManager
 
     void Start()
     {
-        broadcaster.Initialize();
-        broadcaster.StartAsClient();
+        try
+        {
+            broadcaster.Initialize();
+            broadcaster.StartAsClient();
+        }
+        catch
+        {
+            Debug.LogWarning("Broadcaster Failed.");
+        }
     }
 
     public override void OnStopClient()
@@ -64,17 +71,24 @@ public class GameManager : NetworkLobbyManager
     {
         base.OnStartHost();
 
-        broadcaster.Initialize();
-        
-        broadcaster.broadcastData = string.Concat(new object[]
+        try
         {
+            broadcaster.Initialize();
+
+            broadcaster.broadcastData = string.Concat(new object[]
+            {
             "NetworkManager:",
             Network.player.ipAddress,
             ':',
             networkPort
-        });
+            });
 
-        broadcaster.StartAsServer();
+            broadcaster.StartAsServer();
+        }
+        catch
+        {
+            Debug.LogWarning("Broadcaster Failed.");
+        }
     }
 
     void OnGUI()
@@ -159,9 +173,16 @@ public class GameManager : NetworkLobbyManager
         {
             if (GUI.Button(new Rect((float)num, (float)num2, 200f, 20f), "Disconnect"))
             {
-                broadcaster.StopBroadcast();
-                broadcaster.Initialize();
-                broadcaster.StartAsClient();
+                try
+                {
+                    broadcaster.StopBroadcast();
+                    broadcaster.Initialize();
+                    broadcaster.StartAsClient();
+                }
+                catch
+                {
+                    Debug.LogWarning("Broadcaster Failed.");
+                }
                 StopHost();
             }
             num2 += 24;
