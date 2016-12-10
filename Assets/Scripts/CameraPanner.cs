@@ -33,5 +33,28 @@ public class CameraPanner : MonoBehaviour
             pos.z -= delta.y * 0.01f;
             transform.localPosition = pos;
         }
+        else if (Input.GetAxis("Mouse ScrollWheel") > 0 && GetComponent<Camera>().fieldOfView > 25)
+        {
+            GetComponent<Camera>().fieldOfView--;
+            if(GetComponent<Camera>().fieldOfView >= 60)
+            {
+                Quaternion newRotation = Quaternion.Euler(transform.rotation.eulerAngles.x - 0.33334f, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                transform.rotation = newRotation;
+            }
+        }
+        else if (Input.GetAxis("Mouse ScrollWheel") < 0 && GetComponent<Camera>().fieldOfView < 120)
+        {
+            GetComponent<Camera>().fieldOfView++;
+            if (GetComponent<Camera>().fieldOfView > 60)
+            {
+                Quaternion newRotation = Quaternion.Euler(transform.rotation.eulerAngles.x + 0.33334f, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                transform.rotation = newRotation;
+            }
+        }
+    }
+
+    void setCameraFocus(GameObject hex)
+    {
+        transform.position = new Vector3 (hex.transform.position.x, transform.position.y, hex.transform.position.z - 5);
     }
 }

@@ -43,6 +43,8 @@ public class AutoAttackPhase : Phase
                 if (t.playerSlotId == CurrentPlayer.SlotId)
                     continue;
 
+                //Play attack animation
+
                 if (range.Contains(t.coord)) //Auto attack towers
                 {
                     t.healthGP -= currentDamage;
