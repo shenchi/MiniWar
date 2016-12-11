@@ -82,9 +82,15 @@ public class PlayerAgent : NetworkBehaviour
     }
 
     [Command]
-    void CmdFinishCurrentPhase()
+    void CmdEndTurnPhase()
     {
         GamePlay.Instance.FinishCurrentPhase();
+    }
+
+    [Command]
+    void CmdSurrender()
+    {
+        GamePlay.Instance.Surrender(slotId);
     }
 
     public void AddResource(int res)
@@ -248,7 +254,8 @@ public class PlayerAgent : NetworkBehaviour
                             );
                     }
 
-                    UIController.Instance.RegisterButtonAction("CancelBuilding", delegate (string t) { CmdFinishCurrentPhase(); });
+                    UIController.Instance.RegisterButtonAction("EndTurn", delegate (string t) { CmdEndTurnPhase(); });
+                    UIController.Instance.RegisterButtonAction("Surrender", delegate (string t) { CmdSurrender(); });
                 }
                 break;
             case State.Win:

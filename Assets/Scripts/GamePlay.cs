@@ -74,6 +74,7 @@ public class GamePlay : NetworkBehaviour
     private float timeElapsed = 0.0f;
 
     private bool finishCurrentPhase = false;
+    private bool finishGame = false;
 
     public enum ConstantName
     {
@@ -177,7 +178,7 @@ public class GamePlay : NetworkBehaviour
             phase = 0;
         else
             phase++;
-        
+
         if (phase >= runtimePhases[round].Count)
         {
             phase = 0;
@@ -222,7 +223,7 @@ public class GamePlay : NetworkBehaviour
 
     void Update()
     {
-        if (null == currentPhase)
+        if (null == currentPhase || finishGame)
             return;
 
         timeElapsed += Time.deltaTime;
@@ -248,6 +249,16 @@ public class GamePlay : NetworkBehaviour
     public void FinishCurrentPhase()
     {
         finishCurrentPhase = true;
+    }
+
+    public void Surrender(int playerSlot)
+    {
+        finishGame = true;
+        var players = GetAllPlayers();
+        foreach (var player in players)
+        {
+            player.GameState = (player.SlotId == playerSlot) ? PlayerAgent.State.Lose : PlayerAgent.State.Win;
+        }
     }
 
     #endregion

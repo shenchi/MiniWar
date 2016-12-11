@@ -196,14 +196,15 @@ public class GameManager : NetworkLobbyManager
                 StopHost();
             }
             num2 += 24;
-            
+
             Rect position = new Rect(90f, 180f, 500f, 150f);
             GUI.Box(position, "Players:");
             broadcaster.showGUI = false;
         }
         else
         {
-            broadcaster.showGUI = true;
+            if (null != broadcaster)
+                broadcaster.showGUI = true;
         }
 
 
