@@ -237,7 +237,7 @@ public class PlayerAgent : NetworkBehaviour
                     for (int i = 0; i < towerTemplates.Length; i++)
                     {
                         UIController.Instance.SetBuildButtonText(i, towerTemplates[i].type.ToString() + "\nPrice: " +
-                            towerTemplates[i].price + "\nCost: " + towerTemplates[i].cost);
+                            towerTemplates[i].price + " Cost: " + towerTemplates[i].cost);
 
                         UIController.Instance.RegisterButtonAction("BuildButton" + i,
                             delegate (string t)
