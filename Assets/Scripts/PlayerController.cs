@@ -70,7 +70,8 @@ public class PlayerController : NetworkBehaviour
 
     public void EndControl()
     {
-        UIController.Instance.HideActionPanel();
+        if (null != UIController.Instance)
+            UIController.Instance.HideActionPanel();
         SwitchTo(State.Idle);
         CurrentPlayer = null;
         ManualAttackEnabled = false;

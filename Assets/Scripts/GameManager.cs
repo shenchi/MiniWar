@@ -114,8 +114,15 @@ public class GameManager : NetworkLobbyManager
                 {
                     if (GUI.Button(new Rect((float)num, (float)num2, 200f, 20f), "Host"))
                     {
-                        if (broadcaster.running)
-                            broadcaster.StopBroadcast();
+                        try
+                        {
+                            if (broadcaster.running)
+                                broadcaster.StopBroadcast();
+                        }
+                        catch
+                        {
+                            Debug.LogWarning("Broadcaster Failed.");
+                        }
                         StartHost();
                     }
                     num2 += 24;

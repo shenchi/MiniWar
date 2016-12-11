@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
@@ -23,6 +24,7 @@ public class UIController : MonoBehaviour
     public Text winText;
     public Text loseText;
     public Text noticeText;
+    public Button returnButton;
 
     public Button[] buildButtonList;
     private Dictionary<string, Action<string>> buttonActions = new Dictionary<string, Action<string>>();
@@ -80,11 +82,18 @@ public class UIController : MonoBehaviour
     public void ShowWin(bool visible)
     {
         winText.gameObject.SetActive(visible);
+        returnButton.gameObject.SetActive(visible);
     }
 
     public void ShowLose(bool visible)
     {
         loseText.gameObject.SetActive(visible);
+        returnButton.gameObject.SetActive(visible);
+    }
+
+    public void OnReturnButton()
+    {
+        NetworkManager.singleton.StopHost();
     }
 
     void Awake()
