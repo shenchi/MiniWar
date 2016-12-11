@@ -97,6 +97,9 @@ public class GameManager : NetworkLobbyManager
         {
             return;
         }
+
+        GUI.depth = 1;
+
         string name = SceneManager.GetSceneAt(0).name;
         if (name != lobbyScene)
         {
@@ -168,7 +171,7 @@ public class GameManager : NetworkLobbyManager
                 GUI.Label(new Rect((float)num, (float)num2, 300f, 20f), string.Concat(new object[]
                 {
                         "Client: address=",
-                        networkAddress,
+                        (Network.player.ipAddress == networkAddress) ? networkAddress : networkAddress + '(' + Network.player.ipAddress + ')',
                         " port=",
                         networkPort
                 }));
@@ -193,11 +196,14 @@ public class GameManager : NetworkLobbyManager
                 StopHost();
             }
             num2 += 24;
-
-
+            
             Rect position = new Rect(90f, 180f, 500f, 150f);
             GUI.Box(position, "Players:");
-
+            broadcaster.showGUI = false;
+        }
+        else
+        {
+            broadcaster.showGUI = true;
         }
 
 

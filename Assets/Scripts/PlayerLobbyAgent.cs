@@ -74,6 +74,8 @@ public class PlayerLobbyAgent : NetworkLobbyPlayer
         {
             return;
         }
+        
+        GUI.depth = 0;
 
         NetworkLobbyManager networkLobbyManager = NetworkManager.singleton as NetworkLobbyManager;
         if (networkLobbyManager)
