@@ -9,10 +9,25 @@ public class GameManager : NetworkLobbyManager
 
     public GamePlay[] gamePlayPrefabs;
     public TowerManager[] towerManagerPrefabs;
+    public string[] gameLevels;
 
     public int SelectedGamePlay { get; set; }
 
     public int SelectedTowerManager { get; set; }
+
+    private int selectedLevel = 0;
+    public int SelectedLevel
+    {
+        get
+        {
+            return selectedLevel;
+        }
+        set
+        {
+            selectedLevel = value;
+            playScene = gameLevels[value];
+        }
+    }
 
     private GamePlay gamePlay = null;
     private TowerManager towerManager = null;
