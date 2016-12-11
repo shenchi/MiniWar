@@ -87,7 +87,7 @@ public class PlayerController : NetworkBehaviour
 
         if (CurrentPlayer.Cost + TowerManager.Instance.GetTowerMaintenanceCost(towerIndex) >= CurrentPlayer.Production)
         {
-            UIController.Instance.PushNotification("Your maintenance cost is going beyond the production.");
+            UIController.Instance.PushNotification("Your maintenance cost will be greater than your production.");
         }
 
         buildingTowerIndex = towerIndex;
