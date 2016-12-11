@@ -103,8 +103,11 @@ public class PlayerController : NetworkBehaviour
             }
 
             ghostTower = Instantiate(TowerManager.Instance.towerList[(int)towerIndex]).gameObject;
-            
-            ghostTower.GetComponent<TowerInfo>().UpdateLabelColor(CurrentPlayer.PlayerColor);
+
+            var towerInfo = ghostTower.GetComponent<TowerInfo>();
+            towerInfo.stateIcon.gameObject.SetActive(false);
+            towerInfo.stateIcon = null;
+            towerInfo.UpdateLabelColor(CurrentPlayer.PlayerColor);
 
             var culler = ghostTower.GetComponentsInChildren<CullByVision>();
             foreach (var c in culler)

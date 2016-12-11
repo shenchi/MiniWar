@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 public class TowerInfo : NetworkBehaviour
 {
@@ -12,6 +13,7 @@ public class TowerInfo : NetworkBehaviour
     public bool attacked = false;
 
     public TextMesh healthTagGP;
+    public Image stateIcon;
 
     public int level;
     public int vision;
@@ -106,6 +108,14 @@ public class TowerInfo : NetworkBehaviour
                 playerSlotId = slotId;
                 VisionController.Instance.AddTower(this);
             }
+        }
+    }
+
+    void Update()
+    {
+        if (null != stateIcon)
+        {
+            stateIcon.gameObject.SetActive(state == BuildingState.Building || attacked == true);
         }
     }
 
