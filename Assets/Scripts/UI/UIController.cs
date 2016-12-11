@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -189,5 +190,30 @@ public class UIController : MonoBehaviour
     {
         actionPanel.GetComponent<UIList>().Clear();
         actionPanel.gameObject.SetActive(false);
+    }
+
+    private Queue<string> messageQueue = new Queue<string>();
+    private bool showingNotification = false;
+    public void PushNotification(string message)
+    {
+        messageQueue.Enqueue(message);
+        if (!showingNotification)
+        {
+            showingNotification = true;
+            StartCoroutine(NotificationTimer());
+        }
+    }
+
+    private IEnumerator NotificationTimer()
+    {
+        do
+        {
+            noticeText.text = messageQueue.Dequeue();
+            yield return new WaitForSeconds(2.5f);
+            noticeText.text = string.Empty;
+            yield return new WaitForSeconds(0.5f);
+        } while (messageQueue.Count > 0);
+
+        showingNotification = false;
     }
 }

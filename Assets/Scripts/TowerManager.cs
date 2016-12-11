@@ -47,6 +47,13 @@ public class TowerManager : NetworkBehaviour
         return towerList[index].price;
     }
 
+    public int GetTowerMaintenanceCost(int index)
+    {
+        if (index < 0 || index > towerList.Length)
+            return 0;
+        return towerList[index].cost;
+    }
+
     #region Server
 
     private Dictionary<int, List<TowerInfo>> playerTowers = new Dictionary<int, List<TowerInfo>>();

@@ -85,6 +85,11 @@ public class PlayerController : NetworkBehaviour
         if (TowerManager.Instance.GetTowerPrice(towerIndex) > CurrentPlayer.Resource)
             return;
 
+        if (CurrentPlayer.Cost + TowerManager.Instance.GetTowerMaintenanceCost(towerIndex) >= CurrentPlayer.Production)
+        {
+            UIController.Instance.PushNotification("Your maintenance cost is going beyond the production.");
+        }
+
         buildingTowerIndex = towerIndex;
         SwitchTo(State.SelectBuildingCoord);
 
@@ -105,8 +110,11 @@ public class PlayerController : NetworkBehaviour
             ghostTower = Instantiate(TowerManager.Instance.towerList[(int)towerIndex]).gameObject;
 
             var towerInfo = ghostTower.GetComponent<TowerInfo>();
-            towerInfo.stateIcon.gameObject.SetActive(false);
-            towerInfo.stateIcon = null;
+            if (null != towerInfo.stateIcon)
+            {
+                towerInfo.stateIcon.gameObject.SetActive(false);
+                towerInfo.stateIcon = null;
+            }
             towerInfo.UpdateLabelColor(CurrentPlayer.PlayerColor);
 
             var culler = ghostTower.GetComponentsInChildren<CullByVision>();
@@ -121,7 +129,7 @@ public class PlayerController : NetworkBehaviour
             }
 
             ghostTower.layer = LayerMask.NameToLayer("Ghost");
-            
+
             var renderers = ghostTower.GetComponentsInChildren<Renderer>();
             ghostTowerMat = new Material(ghostMat);
 
