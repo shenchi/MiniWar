@@ -73,7 +73,7 @@ public class GamePlay : NetworkBehaviour
     private PlayerAgent currentPlayer = null;
     private float timeElapsed = 0.0f;
 
-    private bool finishCurrentPhase = false;
+    private HashSet<int> finishCurrentPhase = new HashSet<int>();
     private bool finishGame = false;
 
     public enum ConstantName
@@ -203,7 +203,7 @@ public class GamePlay : NetworkBehaviour
         currentPhase.CurrentPlayer = currentPlayer;
         currentPhase.GameOver = false;
         timeElapsed = 0.0f;
-        finishCurrentPhase = false;
+        finishCurrentPhase.Clear();
 
         currentPhase.OnEnter();
     }
@@ -227,7 +227,7 @@ public class GamePlay : NetworkBehaviour
             return;
 
         timeElapsed += Time.deltaTime;
-        if (finishCurrentPhase || (currentPhase.timeLimit >= 0 && timeElapsed > currentPhase.timeLimit))
+        if (AllPlayerFinishedCurrentPhase() || (currentPhase.timeLimit >= 0 && timeElapsed > currentPhase.timeLimit))
         {
             currentPhase.OnExit();
 
@@ -246,9 +246,33 @@ public class GamePlay : NetworkBehaviour
         }
     }
 
-    public void FinishCurrentPhase()
+    bool AllPlayerFinishedCurrentPhase()
     {
-        finishCurrentPhase = true;
+        if (null == currentPhase)
+            return false;
+
+        if (null == currentPhase.CurrentPlayer)
+        {
+            var players = GetAllPlayers();
+            foreach (var player in players)
+            {
+                if (!finishCurrentPhase.Contains(player.SlotId))
+                    return false;
+            }
+            return true;
+        }
+
+        return finishCurrentPhase.Contains(currentPhase.CurrentPlayer.SlotId);
+    }
+
+    public void FinishCurrentPhase(int playerSlot)
+    {
+        finishCurrentPhase.Add(playerSlot);
+    }
+
+    public bool IsPlayerFinishedCurrentPhase(int playerSlot)
+    {
+        return finishCurrentPhase.Contains(playerSlot);
     }
 
     public void Surrender(int playerSlot)

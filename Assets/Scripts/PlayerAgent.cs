@@ -84,7 +84,7 @@ public class PlayerAgent : NetworkBehaviour
     [Command]
     void CmdEndTurnPhase()
     {
-        GamePlay.Instance.FinishCurrentPhase();
+        GamePlay.Instance.FinishCurrentPhase(slotId);
     }
 
     [Command]
@@ -106,7 +106,7 @@ public class PlayerAgent : NetworkBehaviour
         temp.production = prod;
         playerInfo = temp;
     }
-    
+
     public void SetCost(int cost)
     {
         var temp = playerInfo;
@@ -254,7 +254,7 @@ public class PlayerAgent : NetworkBehaviour
                             );
                     }
 
-                    UIController.Instance.RegisterButtonAction("EndTurn", delegate (string t) { CmdEndTurnPhase(); });
+                    UIController.Instance.RegisterButtonAction("EndTurn", delegate (string t) { CmdEndTurnPhase(); UIController.Instance.EnableDoneButton = false; });
                     UIController.Instance.RegisterButtonAction("Surrender", delegate (string t) { CmdSurrender(); });
                 }
                 break;
@@ -288,7 +288,7 @@ public class PlayerAgent : NetworkBehaviour
         UIController.Instance.EnableBuildingPanel = true;
         UIController.Instance.RemainingTime = 1.0f;
 
-        UIController.Instance.EnableDoneButton = (!foreachPlayer);
+        UIController.Instance.EnableDoneButton = true;
     }
 
     [ClientRpc]
