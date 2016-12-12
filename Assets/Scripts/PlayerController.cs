@@ -9,6 +9,8 @@ public class PlayerController : NetworkBehaviour
 {
     #region Client
 
+    public Sprite[] actionButtonImage;
+
     public Material ghostMat;
 
     private Camera cam;
@@ -174,13 +176,13 @@ public class PlayerController : NetworkBehaviour
                                 selectedTower = t;
                                 towerCoord = t.coord;
                                 towerRange = RangeUtils.GetRangeOfTowerForLocalPlayerClient(t);
-                                if (t.type == TowerType.AttackTower && t.attacked == false && ManualAttackEnabled)
+                                if (t.type == TowerType.AttackTower && t.attacked == false && ManualAttackEnabled && t.state == TowerInfo.BuildingState.Working)
                                 {
-                                    UIController.Instance.ShowActionPanel(hitInfo.point, new string[] { "A", "X" }, new UnityAction[] { SelectAttackee, DestroyTower });
+                                    UIController.Instance.ShowActionPanel(hitInfo.point, new Sprite[] { actionButtonImage[1], actionButtonImage[0] }, new UnityAction[] { SelectAttackee, DestroyTower });
                                 }
                                 else
                                 {
-                                    UIController.Instance.ShowActionPanel(hitInfo.point, new string[] { "X" }, new UnityAction[] { DestroyTower });
+                                    UIController.Instance.ShowActionPanel(hitInfo.point, new Sprite[] { actionButtonImage[0] }, new UnityAction[] { DestroyTower });
                                 }
                             }
                         }

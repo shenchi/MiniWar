@@ -177,7 +177,7 @@ public class UIController : MonoBehaviour
         }
     }
 
-    public void ShowActionPanel(Vector3 worldSpacePos, string[] titles, UnityAction[] actions)
+    public void ShowActionPanel(Vector3 worldSpacePos, Sprite[] sprites, UnityAction[] actions)
     {
         Vector2 pos = RectTransformUtility.WorldToScreenPoint(Camera.main, worldSpacePos);
         pos.y -= (actionPanel.transform.parent as RectTransform).rect.height;
@@ -187,10 +187,10 @@ public class UIController : MonoBehaviour
 
         actionPanel.GetComponent<UIList>().Clear();
         UIList list = actionPanel.GetComponent<UIList>();
-        for (int i = 0; i < titles.Length; i++)
+        for (int i = 0; i < sprites.Length; i++)
         {
             GameObject go = list.Add(null);
-            go.GetComponentInChildren<Text>().text = titles[i];
+            go.GetComponent<Image>().sprite = sprites[i];
             go.GetComponent<Button>().onClick.AddListener(actions[i]);
         }
     }
