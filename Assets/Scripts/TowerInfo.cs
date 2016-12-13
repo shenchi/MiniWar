@@ -9,7 +9,7 @@ public class TowerInfo : NetworkBehaviour
 
     [SyncVar]
     public int health;
-    [SyncVar]
+    [SyncVar(hook = "OnAttackStatusChanged")]
     public bool attacked = false;
 
     public TextMesh healthTagGP;
@@ -47,6 +47,17 @@ public class TowerInfo : NetworkBehaviour
     public float healthGP;
 
     public GameObject[] models;
+
+    public bool IsGhost { get; set; }
+
+    private void OnAttackStatusChanged(bool value)
+    {
+        if (!attacked && value && !IsGhost && VisionController.Instance.InVision(coord))
+        {
+            AudioManager.Instance.Play(2);
+        }
+        attacked = value;
+    }
 
     private void OnHealthGPChanged(float changedHealth)
     {
@@ -111,6 +122,14 @@ public class TowerInfo : NetworkBehaviour
         }
     }
 
+    void Start()
+    {
+        if (!IsGhost && VisionController.Instance.InVision(coord))
+        {
+            AudioManager.Instance.Play(3);
+        }
+    }
+
     void Update()
     {
         if (null != stateIcon)
@@ -121,6 +140,10 @@ public class TowerInfo : NetworkBehaviour
 
     void OnDestroy()
     {
+        if (!IsGhost && VisionController.Instance.InVision(coord))
+        {
+            AudioManager.Instance.Play(4);
+        }
         if (null != VisionController.Instance && playerSlotId == VisionController.Instance.LocalPlayerSlotId)
         {
             VisionController.Instance.RemoveTower(this);

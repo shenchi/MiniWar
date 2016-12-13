@@ -113,6 +113,7 @@ public class PlayerController : NetworkBehaviour
             ghostTower = Instantiate(TowerManager.Instance.towerList[(int)towerIndex]).gameObject;
 
             var towerInfo = ghostTower.GetComponent<TowerInfo>();
+            towerInfo.IsGhost = true;
             if (null != towerInfo.stateIcon)
             {
                 towerInfo.stateIcon.gameObject.SetActive(false);
