@@ -22,7 +22,10 @@ public class AudioManager : MonoBehaviour
         if (null == audios || index < 0 || index >= audios.Length)
             return;
 
-        audios[index].Play();
+        var go = Instantiate(audios[index]);
+        var comp = go.GetComponent<PlayOnceAndDestroy>();
+        if (null != comp)
+            comp.enabled = true;
     }
 
     // Use this for initialization

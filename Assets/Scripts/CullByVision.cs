@@ -3,6 +3,7 @@ using System.Collections;
 
 public class CullByVision : MonoBehaviour
 {
+    public TowerInfo tower = null;
     public GameObject children = null;
     private HexCoord coord = new HexCoord();
     private Vector3 lastPosition = Vector3.zero;
@@ -35,7 +36,7 @@ public class CullByVision : MonoBehaviour
         }
         else
         {
-            bool inVision = VisionController.Instance.InVision(coord);
+            bool inVision = null != tower ? VisionController.Instance.InVision(tower.coord) : VisionController.Instance.InVision(coord);
             if (null != renderer)
                 renderer.enabled = inVision;
             if (null != children)
