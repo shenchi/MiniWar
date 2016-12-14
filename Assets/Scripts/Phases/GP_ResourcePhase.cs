@@ -3,7 +3,7 @@ using System.Collections;
 
 public class GP_ResourcePhase : Phase
 {
-
+    /*
     public override void OnEnter()
     {
         base.OnEnter();
@@ -13,5 +13,14 @@ public class GP_ResourcePhase : Phase
         hexes.IntersectWith(vision);
         TowerManager.Instance.RemoveHexagonsOccupied(hexes);
         CurrentPlayer.AddResource(hexes.Count);
+    }
+    */
+
+    public override void OnEnter()
+    {
+        base.OnEnter();
+
+        CurrentPlayer.AddResource(CurrentPlayer.Production);
+        CurrentPlayer.RpcAddLog("Your resource is increased by " + CurrentPlayer.Production + ".");
     }
 }
